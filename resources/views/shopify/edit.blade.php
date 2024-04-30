@@ -18,7 +18,7 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('datos.update', ['id' => $dato->id]) }}" method="POST">
+                        <form action="{{ route('shopify.update', ['id' => $dato->id]) }}" method="POST">
                             @csrf
                             @method('PUT')
 

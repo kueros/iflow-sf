@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('datos', function (Blueprint $table) {
+        Schema::create('shopify', function (Blueprint $table) {
             $table->id();
             $table->string('hmac')->nullable();
             $table->string('host')->nullable();
@@ -20,8 +20,8 @@ return new class extends Migration
             $table->string('fapiusr');
             $table->string('fapiclave');
             $table->string('code')->nullable();
-            $table->string('acces_token')->nullable();
-            $table->string('token')->nullable();
+            $table->string('access_token')->nullable();
+            $table->json('token')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('datos');
+        Schema::dropIfExists('shopify');
     }
 };

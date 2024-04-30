@@ -13,7 +13,7 @@ class Psd_002Controller extends Controller
     public function index()
     {
 
-        $shared_secret = env('CLI_PASS');     //$shared_secret = "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";
+        $api_key = env('CLI_PASS');     //$api_key = "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";
         $shop1 = env('SHOP_TEST');
         $api_key = env('CLI_ID');
         $scope = env('SCOPE');
@@ -79,8 +79,101 @@ class Psd_002Controller extends Controller
 
     public function segundowebhook()
     {
-        dd('ddddddddddddddddddddddddddddddddddd'.$_GET['hmac']);
-    }
+        #dd($_GET);
+        $shop = isset($_GET['shop']) ? $_GET['shop'] : '';
+        $api_key = env('SHOPIFY_API_KEY');
+        $scope = env('SCOPE');
+        $redirect_url = env('RE_DIR_URL');
 
+		$fApiUsr=env('API_U');
+		$fApiClave=env('API_P');
+
+		$params = $_GET;
+		$hmac = isset($_GET['hmac']) ? $_GET['hmac'] : '';
+		$code = isset($_GET['code']) ? $_GET['code'] : '';
+		$state = isset($_GET['state']) ? $_GET['state'] : '';
+		$host = isset($_GET['host']) ? $_GET['host'] : '';
+		
+        $params = array_diff_key($params, array('hmac' => ''));
+
+		ksort($params);
+        
+        $computer_hmac = hash_hmac('sha256', http_build_query($params), $api_key);
+        //********************************************************************************* */
+        
+        $params = array_diff_key($params, array('hmac' => '')); // Remove hmac from params
+        ksort($params); // Sort params lexigraphically
+        
+        $computed_hmac = hash_hmac('sha256', http_build_query($params), $api_key);
+		// Use hmac data to check that the response is from Shopify or not
+#        if (hash_equals($hmac, $computed_hmac)) {
+            // Set variables for our request
+            $query = array(
+                "client_id" => $api_key, // Your API key
+                "client_secret" => $api_key, // Your app credentials (secret key)
+                "code" => $params['code'] // Grab the access key from the URL
+            );
+         	$psd = $params['shop'];
+            // Generate access token URL
+            $access_token_url = "https://" . $params['shop'] . "/admin/oauth/access_token";
+        
+            // Configure curl client and execute request
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_URL, $access_token_url);
+            curl_setopt($ch, CURLOPT_POST, count($query));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($query));
+            $result = curl_exec($ch);
+            curl_close($ch);
+        
+            // Store the access token
+            $result = json_decode($result, true);
+            dd($result);
+            $access_token = $result['access_token'];
+        
+            // Show the access token (don't do this in production!)
+            echo "token devuelto: ";
+
+			echo $hmac.PHP_EOL;
+			echo $host.PHP_EOL;
+			echo $shop.PHP_EOL;
+			echo $state.PHP_EOL;
+			echo $fApiUsr.PHP_EOL;
+			echo $fApiClave.PHP_EOL;
+			echo $code.PHP_EOL;
+			echo $access_token;
+die();
+
+
+
+
+			//Grabo en la base de datos la informacion de la tienda completa
+          $sql = "INSERT INTO `datos`(`hmac`, 
+                                         `host`, 
+                                         `shop`, 
+                                         `state`, 
+                                         `fapiusr`, 
+                                         `fapiclave`,
+                                         `code`,
+                                         `token`) 
+                    VALUES ('$hmac',
+                            '$host',
+                            '$shop1',
+                            '$state',
+                            '$fApiUsr',
+                            '$fApiClave',
+                            '$code',
+                            '$access_token');";
+                            
+        
+
+
+
+
+
+    #}
+
+
+}
 
 }

@@ -1,12 +1,10 @@
 <?php
 
-use App\Http\Controllers\datoController;
 use App\Http\Controllers\ShopifyController;
+use App\Http\Controllers\ShipperController;
 use App\Http\Controllers\Psd_002Controller;
-use App\Models\Dato;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Validation\Rule;
 use Shopify\Clients\Rest;
 
 /*
@@ -20,44 +18,29 @@ use Shopify\Clients\Rest;
 |
 */
 
-Route::get('/test', function (Request $request) {
-
-  $client = new Rest("https://zeusintegra.myshopify.com/admin/api/2024-07/webhooks.json", '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');
-  $response = $client->post(
-    "webhooks",
-    [
-      "webhook" => [
-        "address" => "pubsub://projectName:topicName",
-        "topic" => "customers/update",
-        "format" => "json",
-      ],
-    ]
-  );
-});
-
-
-
-#Route::get('/', [DatoController::class, 'index'])->name('datos.index');
-
-#Route::get('/webhook/{parametro1}/{parametro2}/{parametro3}/{parametro4}', [Psd_002Controller::class, 'webhook'])->name('psd_002.webhook');
 Route::get('/webhook/{parametro1}/{parametro2}/{parametro3}/{parametro4}', [Psd_002Controller::class, 'webhook'])->name('psd_002.webhook');
-Route::get('/segundowebhook', [Psd_002Controller::class, 'segundowebhook'])->name('psd_002.segundowebhook');
+#Route::get('/segundowebhook', [Psd_002Controller::class, 'segundowebhook'])->name('psd_002.segundowebhook');
+Route::get('/segundowebhook', [ShopifyController::class, 'segundowebhook'])->name('shopify.segundowebhook');
+Route::get('/install', [ShopifyController::class, 'install'])->name('shopify.install');
 
 
-Route::get('/datos', [DatoController::class, 'index'])->name('datos.index');
+Route::get('/shopify', [ShopifyController::class, 'index'])->name('shopify.index');
 Route::get('/psd1', [Psd_002Controller::class, 'index'])->name('psd1.index');
 #Route::get('/psd_002/{parametro1}/{parametro2}/{parametro3}/{parametro4}', [Psd_002Controller::class, 'index'])->name('psd2.index');
 
 
 
-Route::delete('/datos/{id}', [DatoController::class, 'destroy'])->name('datos.destroy');
+Route::delete('/shopify/{id}', [ShopifyController::class, 'destroy'])->name('shopify.destroy');
 
-#Route::get('/datos/{id}', [DatoController::class, 'show'])->name('datos.view');
+#Route::get('/shopify/{id}', [ShopifyController::class, 'show'])->name('shopify.view');
 
-Route::get('/datos/crear', [DatoController::class, 'create'])->name('datos.create');
+Route::get('/shopify/crear', [ShopifyController::class, 'create'])->name('shopify.create');
 
-Route::post('/datos', [DatoController::class, 'store'])->name('datos.store');
+Route::post('/shopify', [ShopifyController::class, 'store'])->name('shopify.store');
 
-Route::get('/datos/{id}/editar', [DatoController::class, 'edit'])->name('datos.edit');
+Route::get('/shopify/{id}/editar', [ShopifyController::class, 'edit'])->name('shopify.edit');
 
-Route::put('/datos/{id}', [DatoController::class, 'update'])->name('datos.update');
+Route::put('/shopify/{id}', [ShopifyController::class, 'update'])->name('shopify.update');
+
+
+

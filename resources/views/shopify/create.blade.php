@@ -18,7 +18,7 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('datos.store') }}" method="POST">
+                        <form action="{{ route('shopify.store') }}" method="POST">
                             @csrf
 
                             <label for="shop" class="field-label">Tienda: </label>

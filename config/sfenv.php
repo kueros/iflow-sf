@@ -7,4 +7,5 @@ return [
     'logs' => env("FI_LOGS"),
     'scope' => env("SCOPE"),
     'webhook_url' => env("WEBHOOK_URL"),
+    'url_root' => env("URL_ROOT"),
 ];

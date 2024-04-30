@@ -13,13 +13,13 @@
 			<nav class="main-nav">
 				<ul class="main-nav-list">
 					<li class="main-nav-item">
-						<a href="{{ route('datos.index') }}" class="main-nav-link">
+						<a href="{{ route('shopify.index') }}" class="main-nav-link">
 							<i class="icon icon-th-list"></i>
 							<span>Ver tiendas</span>
 						</a>
 					</li>
 					<li class="main-nav-item active">
-						<a href="{{ route('datos.create') }}" class="main-nav-link">
+						<a href="{{ route('shopify.create') }}" class="main-nav-link">
 							<i class="icon icon-pen"></i>
 							<span>Nueva tienda</span>
 						</a>

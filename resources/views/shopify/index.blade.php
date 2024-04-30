@@ -3,24 +3,24 @@
 
         <main class="content">
             <div class="cards">
-                @forelse($datos as $dato)
+                @forelse($shopifyDatos as $shopifyDato)
                     <div class="card card-small">
                         <div class="card-body">
-                            <h4>{{ $dato->shop }}</h4>
+                            <h4>{{ $shopifyDato->shop }}</h4>
                             <p>
-                                {{ $dato->fApiUsr }}
+                                {{ $shopifyDato->fApiUsr }}
                             </p>
                             <p>
-                                {{ $dato->fApiClave }}
+                                {{ $shopifyDato->fApiClave }}
                             </p>
-                            <form method="POST" action="{{ route('datos.destroy', $dato) }}">
+                            <form method="POST" action="{{ route('shopify.destroy', $shopifyDato) }}">
                                 @method('DELETE')
                                 @csrf
                                 <a class="action-link">
                                     <button><i class="icon icon-trash "></button></i>
                                 </a>
                                 &nbsp;&nbsp;
-                                <a href="{{ $dato->editUrl() }}" class="action-link action-edit">
+                                <a href="{{ $shopifyDato->editUrl() }}" class="action-link action-edit">
                                     <i class="icon icon-pen"></i>
                                 </a>
                             </form>
