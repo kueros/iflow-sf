@@ -25,8 +25,8 @@ Route::get('/install', [ShopifyController::class, 'install'])->name('shopify.ins
 #Route::get('/carriercreate/{shop}', [ShopifyController::class, 'carrierCreate'])->name('shopify.carriercreate');
 Route::get('/carrierCreate', [ShopifyController::class, 'carrierCreate'])->name('shopify.carrierCreate');
 Route::get('/carrierList', [ShopifyController::class, 'carrierList'])->name('shopify.carrierList');
-Route::get('/carrierMostrar', [ShopifyController::class, 'carrierMostrar'])->name('shopify.carrierMostrar');
-Route::get('/carrierDelete', [ShopifyController::class, 'carrierDelete'])->name('shopify.carrierDelete');
+Route::get('/carrierMostrar/{carrierId}', [ShopifyController::class, 'carrierMostrar'])->name('shopify.carrierMostrar');
+Route::get('/carrierDelete/{carrierId}', [ShopifyController::class, 'carrierDelete'])->name('shopify.carrierDelete');
 
 #Route::post('/action/{shop}/rates', 'ShipperController@rates');
 

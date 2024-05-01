@@ -79,7 +79,7 @@ class ShopifyController extends Controller
         $shared_secret = env('CLI_PASS');
         $shopifyDatos = Shopify::latest()->first();
 
-        $shop1 = $shopifyDatos->shop;
+        $shop = $shopifyDatos->shop;
         $fApiUsr = $shopifyDatos->fapiusr;
         $fApiClave = $shopifyDatos->fapiclave;
 
@@ -124,7 +124,7 @@ class ShopifyController extends Controller
             echo "token devuelto: ";
             $state = '1';
             Shopify::updateOrInsert(
-                ['shop' => $shop1, 'fApiUsr' => $fApiUsr, 'fApiClave' => $fApiClave],
+                ['shop' => $shop, 'fApiUsr' => $fApiUsr, 'fApiClave' => $fApiClave],
                 ['hmac' => $hmac, 'code' => $code, 'host' => $host, 'access_token' => $access_token, 'state' => $state]
             );
 
@@ -133,7 +133,7 @@ class ShopifyController extends Controller
             $webhook_url = 'http://localhost/sf/psd_004.php';
 
             // Configura la URL de la API de Shopify
-            $api_url = "https://$shop1/admin/api/2024-01";
+            $api_url = "https://$shop/admin/api/2024-01";
 
             // Define los datos del webhook
             $webhook_data = [
@@ -169,7 +169,7 @@ class ShopifyController extends Controller
                 CURLOPT_POSTFIELDS => '{"webhook":{"address":"pubsub://projectName17:topicName","topic":"orders/create","format":"json"}}',
                 CURLOPT_HTTPHEADER => array(
                     'X-Shopify-Topic: orders/create',
-                    'X-Shopify-Shop-Domain: ' . $shop1,
+                    'X-Shopify-Shop-Domain: ' . $shop,
                     'X-Shopify-API-Version: 2024-04',
                     'X-Shopify-Access-Token: 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',
                     'Content-Type: application/json',
@@ -188,7 +188,7 @@ class ShopifyController extends Controller
                 echo "<p style='color: green;'>Webhook creado exitosamente<br/><br/>";
             }
             Shopify::updateOrInsert(
-                ['shop' => $shop1, 'fApiUsr' => $fApiUsr, 'fApiClave' => $fApiClave, 'token' => $response],
+                ['shop' => $shop, 'fApiUsr' => $fApiUsr, 'fApiClave' => $fApiClave, 'token' => $response],
                 ['hmac' => $hmac, 'code' => $code, 'host' => $host, 'access_token' => $access_token, 'state' => $state, 'token' => $response]
             );
             // Procesar los resultados
@@ -203,81 +203,93 @@ class ShopifyController extends Controller
         return;
     }
 
-    public function carriercreate3()
-    {
-        /* DATOS DEL ENV */
-        #Cargo shopifyDatos del env en variables
-        $api_key = config('sfenv.api_key');
-        $redirect_url =  config('sfenv.redirect_url');
-        $scope =  config('sfenv.scope');
-        #dd($api_key.PHP_EOL.$redirect_url.PHP_EOL.$scope);
-
-        #Chupo los shopifyDatos del último registro de la tabla
-        $shopifyDatos = Shopify::latest()->first();
-        $shop = $shopifyDatos->shop;
-
-        $install = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scope . "&redirect_uri=" . $redirect_url;
-
-        return redirect($install);
-    }
-
     public function carrierCreate()
     {
+
+        $shopifyDatos = Shopify::latest()->first();
+        $shop = $shopifyDatos->shop;
+		$fApiClave = $shopifyDatos->fapiclave;
+		$fApiUsr = $shopifyDatos->fapiusr;
+		$access_token = $shopifyDatos->access_token;
+		$method = 'POST';
+
+		// Datos iniciales en forma de arreglo asociativo
+		$data = [
+			"carrier_service" => [
+				"name" => $shop,
+				"callback_url" => "http://localhost:8000/carrierCreate",
+				"service_discovery" => true
+			]
+		];
+		$access_token = $shopifyDatos->access_token;
+
+		// Modificar datos según la necesidad
+		#$data['carrier_service']['name'] = "nuevovalor.myshopify.com";
+		#$data['carrier_service']['callback_url'] = "http://localhost:8000/nuevoCallback";
+
+		// Convertir el arreglo a JSON
+		$jsonData = json_encode($data);
 
 		$curl = curl_init();
 		
 		curl_setopt_array($curl, array(
-						CURLOPT_URL => 'https://zeusintegra.myshopify.com/admin/api/2024-04/carrier_services.json',
+						CURLOPT_URL => 'https://'.$shop.'/admin/api/2024-04/carrier_services.json',
 						CURLOPT_RETURNTRANSFER => true,
 						CURLOPT_ENCODING => '',
 						CURLOPT_MAXREDIRS => 10,
 						CURLOPT_TIMEOUT => 0,
 						CURLOPT_FOLLOWLOCATION => true,
 						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-						CURLOPT_CUSTOMREQUEST => 'POST',
-						CURLOPT_POSTFIELDS =>'{
-			"carrier_service": {
-				"name": "zeusintegra.myshopify.com",
-				"callback_url": "http://localhost:8000/carrierCreate",
-				"service_discovery": true
-			}
-		}',
+						CURLOPT_CUSTOMREQUEST => $method,
+						CURLOPT_POSTFIELDS =>$jsonData,
 						CURLOPT_HTTPHEADER => array(
-										'X-Shopify-Access-Token: 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',
+										'X-Shopify-Access-Token: '.$access_token,
 										'Content-Type: application/json',
 										'X-Shopify-Shop-Domain: pubsub://projectName14:topicName'
 						),
 		));
 		
 		$response = curl_exec($curl);
-		
 		curl_close($curl);
 		// Procesa los datos del response decodificando el JSON
 		$responseJSON = json_decode($response, true);
-
+		$carrierId = $responseJSON['carrier_service']['id'];
 		// Muestra el JSON del response
 		echo "JSON del response:";
 		echo "<pre>";
 		print_r($responseJSON);
 		echo "</pre>";
-		
+		Shopify::updateOrInsert(
+			['shop' => $shop, 'fApiUsr' => $fApiUsr, 'fApiClave' => $fApiClave, 'access_token' => $access_token],
+			['carrier' => $response]
+		);
+		if (str_contains($response, 'error')) {
+			echo "La operación dio el siguiente error: " . $response;
+		} else {
+			echo "Carrier {$carrierId} creado con éxito";
+        }
+
 	}
 
-	public function carrierMostrar(){
+	public function carrierMostrar($carrierId){
+
+        $shopifyDatos = Shopify::latest()->first();
+        $shop = $shopifyDatos->shop;
+		$access_token = $shopifyDatos->access_token;
+		$method = 'GET';
 
 		$curl = curl_init();
-		
 		curl_setopt_array($curl, array(
-						CURLOPT_URL => 'https://zeusintegra.myshopify.com/admin/api/2024-04/carrier_services/64438829247.json',
+						CURLOPT_URL => 'https://'.$shop.'/admin/api/2024-04/carrier_services/'.$carrierId.'.json',
 						CURLOPT_RETURNTRANSFER => true,
 						CURLOPT_ENCODING => '',
 						CURLOPT_MAXREDIRS => 10,
 						CURLOPT_TIMEOUT => 0,
 						CURLOPT_FOLLOWLOCATION => true,
 						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-						CURLOPT_CUSTOMREQUEST => 'GET',
+						CURLOPT_CUSTOMREQUEST => $method,
 						CURLOPT_HTTPHEADER => array(
-										'X-Shopify-Access-Token: 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'
+										'X-Shopify-Access-Token: '.$access_token
 						),
 		));
 		
@@ -295,20 +307,24 @@ class ShopifyController extends Controller
 		
 	}
 
-	public function carrierDelete() {
+	public function carrierDelete($carrierId){
+		$shopifyDatos = Shopify::latest()->first();
+        $shop = $shopifyDatos->shop;
+		$access_token = $shopifyDatos->access_token;
+		$method = 'DELETE';
+
 		$curl = curl_init();
-			
 		curl_setopt_array($curl, array(
-						CURLOPT_URL => 'https://zeusintegra.myshopify.com/admin/api/2024-04/carrier_services/64438829247.json',
-						CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_URL => 'https://'.$shop.'/admin/api/2024-04/carrier_services/'.$carrierId.'.json',
+			CURLOPT_RETURNTRANSFER => true,
 						CURLOPT_ENCODING => '',
 						CURLOPT_MAXREDIRS => 10,
 						CURLOPT_TIMEOUT => 0,
 						CURLOPT_FOLLOWLOCATION => true,
 						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-						CURLOPT_CUSTOMREQUEST => 'DELETE',
+						CURLOPT_CUSTOMREQUEST => $method,
 						CURLOPT_HTTPHEADER => array(
-										'X-Shopify-Access-Token: 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'
+							'X-Shopify-Access-Token: '.$access_token
 						),
 		));
 		
@@ -318,7 +334,7 @@ class ShopifyController extends Controller
 		if (str_contains($response, 'error')) {
 			echo "La operación dio el siguiente error: " . $response;
 		} else {
-			echo "La operación se realizó con éxito";
+			echo "Carrier {$carrierId} borrado con éxito";
         }
 		
 	}
