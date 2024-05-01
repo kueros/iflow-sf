@@ -6,6 +6,8 @@ use App\Models\Shopify;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Redirect;
+use Shopify\Rest\Admin2024_04\CarrierService;
+use Shopify\Utils;
 
 class ShopifyController extends Controller
 {
@@ -164,7 +166,7 @@ class ShopifyController extends Controller
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => '{"webhook":{"address":"pubsub://projectName11:topicName","topic":"orders/create","format":"json"}}',
+                CURLOPT_POSTFIELDS => '{"webhook":{"address":"pubsub://projectName17:topicName","topic":"orders/create","format":"json"}}',
                 CURLOPT_HTTPHEADER => array(
                     'X-Shopify-Topic: orders/create',
                     'X-Shopify-Shop-Domain: ' . $shop1,
@@ -186,13 +188,13 @@ class ShopifyController extends Controller
                 echo "<p style='color: green;'>Webhook creado exitosamente<br/><br/>";
             }
             Shopify::updateOrInsert(
-                ['shop' => $shop1, 'fApiUsr' => $fApiUsr, 'fApiClave' => $fApiClave],
-                ['token' => $response]
+                ['shop' => $shop1, 'fApiUsr' => $fApiUsr, 'fApiClave' => $fApiClave, 'token' => $response],
+                ['hmac' => $hmac, 'code' => $code, 'host' => $host, 'access_token' => $access_token, 'state' => $state, 'token' => $response]
             );
             // Procesar los resultados
-            $result = Shopify::all();//->each(function($shopifyDatos)
+            $result = Shopify::all(); //->each(function($shopifyDatos)
             #dd($result);
-            $result->each(function($shopify){
+            $result->each(function ($shopify) {
                 echo "Tienda: " . $shopify->shop . '<br/>';
                 echo "TOKEN: " . $shopify->access_token . '<br/>';
                 echo "Code: " . $shopify->code . '<br/>';
@@ -201,8 +203,156 @@ class ShopifyController extends Controller
         return;
     }
 
+    public function carriercreate3()
+    {
+        /* DATOS DEL ENV */
+        #Cargo shopifyDatos del env en variables
+        $api_key = config('sfenv.api_key');
+        $redirect_url =  config('sfenv.redirect_url');
+        $scope =  config('sfenv.scope');
+        #dd($api_key.PHP_EOL.$redirect_url.PHP_EOL.$scope);
 
+        #Chupo los shopifyDatos del último registro de la tabla
+        $shopifyDatos = Shopify::latest()->first();
+        $shop = $shopifyDatos->shop;
 
+        $install = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scope . "&redirect_uri=" . $redirect_url;
+
+        return redirect($install);
+    }
+
+    public function carrierCreate()
+    {
+
+		$curl = curl_init();
+		
+		curl_setopt_array($curl, array(
+						CURLOPT_URL => 'https://zeusintegra.myshopify.com/admin/api/2024-04/carrier_services.json',
+						CURLOPT_RETURNTRANSFER => true,
+						CURLOPT_ENCODING => '',
+						CURLOPT_MAXREDIRS => 10,
+						CURLOPT_TIMEOUT => 0,
+						CURLOPT_FOLLOWLOCATION => true,
+						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+						CURLOPT_CUSTOMREQUEST => 'POST',
+						CURLOPT_POSTFIELDS =>'{
+			"carrier_service": {
+				"name": "zeusintegra.myshopify.com",
+				"callback_url": "http://localhost:8000/carrierCreate",
+				"service_discovery": true
+			}
+		}',
+						CURLOPT_HTTPHEADER => array(
+										'X-Shopify-Access-Token: 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',
+										'Content-Type: application/json',
+										'X-Shopify-Shop-Domain: pubsub://projectName14:topicName'
+						),
+		));
+		
+		$response = curl_exec($curl);
+		
+		curl_close($curl);
+		// Procesa los datos del response decodificando el JSON
+		$responseJSON = json_decode($response, true);
+
+		// Muestra el JSON del response
+		echo "JSON del response:";
+		echo "<pre>";
+		print_r($responseJSON);
+		echo "</pre>";
+		
+	}
+
+	public function carrierMostrar(){
+
+		$curl = curl_init();
+		
+		curl_setopt_array($curl, array(
+						CURLOPT_URL => 'https://zeusintegra.myshopify.com/admin/api/2024-04/carrier_services/64438829247.json',
+						CURLOPT_RETURNTRANSFER => true,
+						CURLOPT_ENCODING => '',
+						CURLOPT_MAXREDIRS => 10,
+						CURLOPT_TIMEOUT => 0,
+						CURLOPT_FOLLOWLOCATION => true,
+						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+						CURLOPT_CUSTOMREQUEST => 'GET',
+						CURLOPT_HTTPHEADER => array(
+										'X-Shopify-Access-Token: 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'
+						),
+		));
+		
+		$response = curl_exec($curl);
+		
+		curl_close($curl);
+		// Procesa los datos del response decodificando el JSON
+		$responseJSON = json_decode($response, true);
+
+		// Muestra el JSON del response
+		echo "JSON del response:";
+		echo "<pre>";
+		print_r($responseJSON);
+		echo "</pre>";
+		
+	}
+
+	public function carrierDelete() {
+		$curl = curl_init();
+			
+		curl_setopt_array($curl, array(
+						CURLOPT_URL => 'https://zeusintegra.myshopify.com/admin/api/2024-04/carrier_services/64438829247.json',
+						CURLOPT_RETURNTRANSFER => true,
+						CURLOPT_ENCODING => '',
+						CURLOPT_MAXREDIRS => 10,
+						CURLOPT_TIMEOUT => 0,
+						CURLOPT_FOLLOWLOCATION => true,
+						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+						CURLOPT_CUSTOMREQUEST => 'DELETE',
+						CURLOPT_HTTPHEADER => array(
+										'X-Shopify-Access-Token: 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'
+						),
+		));
+		
+		$response = curl_exec($curl);
+		// Valida si se ha producido errores y muestra el mensaje de error
+		#dd(curl_errno($curl));
+		if (str_contains($response, 'error')) {
+			echo "La operación dio el siguiente error: " . $response;
+		} else {
+			echo "La operación se realizó con éxito";
+        }
+		
+	}
+
+	public function carrierList() {
+
+		$curl = curl_init();
+		
+		curl_setopt_array($curl, array(
+						CURLOPT_URL => 'https://zeusintegra.myshopify.com/admin/api/2024-04/carrier_services.json',
+						CURLOPT_RETURNTRANSFER => true,
+						CURLOPT_ENCODING => '',
+						CURLOPT_MAXREDIRS => 10,
+						CURLOPT_TIMEOUT => 0,
+						CURLOPT_FOLLOWLOCATION => true,
+						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+						CURLOPT_CUSTOMREQUEST => 'GET',
+						CURLOPT_HTTPHEADER => array(
+										'X-Shopify-Access-Token: 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'
+						),
+		));
+		
+		$response = curl_exec($curl);
+		
+		curl_close($curl);
+		// Procesa los datos del response decodificando el JSON
+		$responseJSON = json_decode($response, true);
+
+		// Muestra el JSON del response
+		echo "JSON del response:";
+		echo "<pre>";
+		print_r($responseJSON);
+		echo "</pre>";
+	}
 
     public function edit($id)
     {

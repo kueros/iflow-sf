@@ -22,6 +22,13 @@ Route::get('/webhook/{parametro1}/{parametro2}/{parametro3}/{parametro4}', [Psd_
 #Route::get('/segundowebhook', [Psd_002Controller::class, 'segundowebhook'])->name('psd_002.segundowebhook');
 Route::get('/segundowebhook', [ShopifyController::class, 'segundowebhook'])->name('shopify.segundowebhook');
 Route::get('/install', [ShopifyController::class, 'install'])->name('shopify.install');
+#Route::get('/carriercreate/{shop}', [ShopifyController::class, 'carrierCreate'])->name('shopify.carriercreate');
+Route::get('/carrierCreate', [ShopifyController::class, 'carrierCreate'])->name('shopify.carrierCreate');
+Route::get('/carrierList', [ShopifyController::class, 'carrierList'])->name('shopify.carrierList');
+Route::get('/carrierMostrar', [ShopifyController::class, 'carrierMostrar'])->name('shopify.carrierMostrar');
+Route::get('/carrierDelete', [ShopifyController::class, 'carrierDelete'])->name('shopify.carrierDelete');
+
+#Route::post('/action/{shop}/rates', 'ShipperController@rates');
 
 
 Route::get('/shopify', [ShopifyController::class, 'index'])->name('shopify.index');
