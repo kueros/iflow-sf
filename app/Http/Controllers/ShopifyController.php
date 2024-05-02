@@ -51,7 +51,7 @@ class ShopifyController extends Controller
             ['fApiClave' => $request->input('fApiClave')]
         );
 
-        return redirect($this->url_root . '/install'); #('.$request.')');
+        return redirect($this->url_root . '/install');
     }
 
     public function install()
@@ -71,6 +71,170 @@ class ShopifyController extends Controller
 
         return redirect($install);
     }
+
+	public function webhookCreate() 
+	{
+        $shopifyDatos = Shopify::latest()->first();
+        $shop = $shopifyDatos->shop;
+		$fApiClave = $shopifyDatos->fapiclave;
+		$fApiUsr = $shopifyDatos->fapiusr;
+		$access_token = $shopifyDatos->access_token;
+		$method = 'POST';
+
+		// Datos iniciales en forma de arreglo asociativo
+		$data = [
+			"webhook" => [
+				"address" => 'pubsub://projectName:topicName',
+				"topic" => "customers/update",
+				"format" => "json",
+			]
+		];
+		$access_token = $shopifyDatos->access_token;
+
+		// Convertir el arreglo a JSON
+		$jsonData = json_encode($data);
+
+		$curl = curl_init();
+
+		curl_setopt_array($curl, array(
+						CURLOPT_URL => 'https://'.$shop.'/admin/api/2024-04/webhooks.json',
+						CURLOPT_RETURNTRANSFER => true,
+						CURLOPT_ENCODING => '',
+						CURLOPT_MAXREDIRS => 10,
+						CURLOPT_TIMEOUT => 0,
+						CURLOPT_FOLLOWLOCATION => true,
+						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+						CURLOPT_CUSTOMREQUEST => $method,
+						CURLOPT_POSTFIELDS =>$jsonData,
+						CURLOPT_HTTPHEADER => array(
+										'X-Shopify-Access-Token: '.$access_token,
+										'Content-Type: application/json'
+						),
+		));
+
+		$response = curl_exec($curl);
+		curl_close($curl);
+		// Procesa los datos del response decodificando el JSON
+		$responseJSON = json_decode($response, true);
+		$webhookId = $responseJSON['webhook']['id'];
+		// Muestra el JSON del response
+		echo "JSON del response:";
+		echo "<pre>";
+		print_r($responseJSON);
+		echo "</pre>";
+		Shopify::updateOrInsert(
+			['shop' => $shop, 'fApiUsr' => $fApiUsr, 'fApiClave' => $fApiClave, 'access_token' => $access_token],
+			['carrier' => $response]
+		);
+		if (str_contains($response, 'error')) {
+			echo "La operación dio el siguiente error: " . $response;
+		} else {
+			echo "Webhook {$webhookId} creado con éxito";
+        }
+
+	}
+
+	public function webhookMostrar($webhookId) 
+	{
+		$shopifyDatos = Shopify::latest()->first();
+        $shop = $shopifyDatos->shop;
+		$access_token = $shopifyDatos->access_token;
+		$method = 'GET';
+
+		$curl = curl_init();
+
+		curl_setopt_array($curl, array(
+						CURLOPT_URL => 'https://'.$shop.'/admin/api/2024-04/webhooks/'.$webhookId.'.json',
+						CURLOPT_RETURNTRANSFER => true,
+						CURLOPT_ENCODING => '',
+						CURLOPT_MAXREDIRS => 10,
+						CURLOPT_TIMEOUT => 0,
+						CURLOPT_FOLLOWLOCATION => true,
+						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+						CURLOPT_CUSTOMREQUEST => $method,
+						CURLOPT_HTTPHEADER => array(
+										'X-Shopify-Access-Token: '.$access_token
+						),
+		));
+
+		$response = curl_exec($curl);
+		
+		curl_close($curl);
+		// Procesa los datos del response decodificando el JSON
+		$responseJSON = json_decode($response, true);
+
+		// Muestra el JSON del response
+		echo "JSON del response:";
+		echo "<pre>";
+		print_r($responseJSON);
+		echo "</pre>";
+
+	}
+
+	public function webhookDelete($webhookId) {
+		$shopifyDatos = Shopify::latest()->first();
+        $shop = $shopifyDatos->shop;
+		$access_token = $shopifyDatos->access_token;
+		$method = 'DELETE';
+
+		$curl = curl_init();
+
+		curl_setopt_array($curl, array(
+						CURLOPT_URL => 'https://'.$shop.'/admin/api/2024-04/webhooks/'.$webhookId.'.json',
+						CURLOPT_RETURNTRANSFER => true,
+						CURLOPT_ENCODING => '',
+						CURLOPT_MAXREDIRS => 10,
+						CURLOPT_TIMEOUT => 0,
+						CURLOPT_FOLLOWLOCATION => true,
+						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+						CURLOPT_CUSTOMREQUEST => $method,
+						CURLOPT_HTTPHEADER => array(
+							'X-Shopify-Access-Token: '.$access_token
+						),
+		));
+
+		$response = curl_exec($curl);
+		// Valida si se ha producido errores y muestra el mensaje de error
+		#dd(curl_errno($curl));
+		if (str_contains($response, 'error')) {
+			echo "La operación dio el siguiente error: " . $response;
+		} else {
+			echo "Carrier {$webhookId} borrado con éxito";
+        }
+
+	}
+	public function webhookList() {
+
+		$curl = curl_init();
+
+		curl_setopt_array($curl, array(
+						CURLOPT_URL => 'https://zeusintegra.myshopify.com/admin/api/2024-07/webhooks.json',
+						CURLOPT_RETURNTRANSFER => true,
+						CURLOPT_ENCODING => '',
+						CURLOPT_MAXREDIRS => 10,
+						CURLOPT_TIMEOUT => 0,
+						CURLOPT_FOLLOWLOCATION => true,
+						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+						CURLOPT_CUSTOMREQUEST => 'GET',
+						CURLOPT_HTTPHEADER => array(
+										'X-Shopify-Access-Token: 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'
+						),
+		));
+
+		$response = curl_exec($curl);
+
+		curl_close($curl);
+		// Procesa los datos del response decodificando el JSON
+		$responseJSON = json_decode($response, true);
+
+		// Muestra el JSON del response
+		echo "JSON del response:";
+		echo "<pre>";
+		print_r($responseJSON);
+		echo "</pre>";
+
+	}
+
 
     public function segundowebhook()
     {
@@ -222,10 +386,6 @@ class ShopifyController extends Controller
 			]
 		];
 		$access_token = $shopifyDatos->access_token;
-
-		// Modificar datos según la necesidad
-		#$data['carrier_service']['name'] = "nuevovalor.myshopify.com";
-		#$data['carrier_service']['callback_url'] = "http://localhost:8000/nuevoCallback";
 
 		// Convertir el arreglo a JSON
 		$jsonData = json_encode($data);

@@ -28,6 +28,13 @@ Route::get('/carrierList', [ShopifyController::class, 'carrierList'])->name('sho
 Route::get('/carrierMostrar/{carrierId}', [ShopifyController::class, 'carrierMostrar'])->name('shopify.carrierMostrar');
 Route::get('/carrierDelete/{carrierId}', [ShopifyController::class, 'carrierDelete'])->name('shopify.carrierDelete');
 
+# NUEVO PARA WHITELIST EN LUGAR DEL SEGUNDOWEBHOOK
+
+Route::get('/webhookCreate', [ShopifyController::class, 'webhookCreate'])->name('shopify.webhookCreate');
+Route::get('/webhookList', [ShopifyController::class, 'webhookList'])->name('shopify.webhookList');
+Route::get('/webhookMostrar/{webhookId}', [ShopifyController::class, 'webhookMostrar'])->name('shopify.webhookMostrar');
+Route::get('/webhookDelete/{webhookId}', [ShopifyController::class, 'webhookDelete'])->name('shopify.webhookDelete');
+
 #Route::post('/action/{shop}/rates', 'ShipperController@rates');
 
 
