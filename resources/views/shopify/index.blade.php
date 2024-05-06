@@ -8,10 +8,10 @@
                         <div class="card-body">
                             <h4>{{ $shopifyDato->shop }}</h4>
                             <p>
-                                {{ $shopifyDato->fApiUsr }}
+                                {{ $shopifyDato->fapiusr }}
                             </p>
                             <p>
-                                {{ $shopifyDato->fApiClave }}
+                                {{ $shopifyDato->fapiclave }}
                             </p>
                             <form method="POST" action="{{ route('shopify.destroy', $shopifyDato) }}">
                                 @method('DELETE')

@@ -8,4 +8,8 @@ return [
     'scope' => env("SCOPE"),
     'webhook_url' => env("WEBHOOK_URL"),
     'urlroot' => env("URLROOT"),
-];
+    'callback_url_carrier' => env("CALLBACK_URL_CARRIER"),
+    'webhook_address_orders_create' => env("WEBHOOK_ADDRESS_ORDERS_CREATE"),
+    'webhook_address_orders_paid' => env("WEBHOOK_ADDRESS_ORDERS_PAID"),
+    'webhook_address_orders_cancelled' => env("WEBHOOK_ADDRESS_ORDERS_CANCELLED"),
+    ];

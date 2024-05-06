@@ -28,13 +28,13 @@
                                 <p class="error-message">{{ $message }}</p>
                             @enderror
 
-                            <label for="fApiUsr" class="field-label">Usuario API:</label>
-                            <input type="text" name="fApiUsr" id="fApiUsr" value="{{ old('fApiUsr', $dato->fApiUsr) }}" class="field-input @error('fApiUsr') field-error @enderror">
+                            <label for="fapiusr" class="field-label">Usuario API:</label>
+                            <input type="text" name="fapiusr" id="fapiusr" value="{{ old('fapiusr', $dato->fapiusr) }}" class="field-input @error('fapiusr') field-error @enderror">
                             @error('content')
                                 <p class="error-message">{{ $message }}</p>
                             @enderror
-                            <label for="fApiClave" class="field-label">Clave API:</label>
-                            <input type="text" name="fApiClave" id="fApiClave" value="{{ old('fApiClave', $dato->fApiClave) }}" class="field-input @error('fApiClave') field-error @enderror">
+                            <label for="fapiclave" class="field-label">Clave API:</label>
+                            <input type="text" name="fapiclave" id="fapiclave" value="{{ old('fapiclave', $dato->fapiclave) }}" class="field-input @error('fapiclave') field-error @enderror">
                             @error('content')
                                 <p class="error-message">{{ $message }}</p>
                             @enderror

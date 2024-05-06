@@ -17,7 +17,7 @@ class Shopify extends Model
     protected $table = 'shopify';
     use SoftDeletes;
 
-    protected $fillable = ['hmac', 'host', 'shop', 'state', 'fapiusr', 'fapiclave', 'code', 'access_token', 'token'];
+    protected $fillable = ['hmac', 'host', 'shop', 'state', 'fapiusr', 'fapiclave', 'code', 'access_token', 'token', 'carrier', 'webhook'];
 
     public function editUrl()
     {

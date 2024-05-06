@@ -20,7 +20,6 @@ class CarrierServiceController extends Controller
 	 *
 	 * @return \Illuminate\Http\Response
      * 
-     * EVALUAR con Pablo qué datos se le van a pasar a la hora de la creación del carrier, supongo que será un json ccon lo necesario.
 	 *************************************************************************************************************/
     public function carrierCreate1()
     {

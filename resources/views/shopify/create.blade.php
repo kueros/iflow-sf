@@ -27,15 +27,15 @@
                                 <p class="error-message">{{ $message }}</p>
                             @enderror
 
-                            <label for="fApiUsr" class="field-label">User API:</label>
-                            <input type="text" name="fApiUsr" id="fApiUsr" value="{{ old('fApiUsr') }}" class="field-input @error('fApiUsr') field-error @enderror">
-                            @error('fApiUsr')
+                            <label for="fapiusr" class="field-label">User API:</label>
+                            <input type="text" name="fapiusr" id="fapiusr" value="{{ old('fapiusr') }}" class="field-input @error('fapiusr') field-error @enderror">
+                            @error('fapiusr')
                                 <p class="error-message">{{ $message }}</p>
                             @enderror
 
-                            <label for="fApiClave" class="field-label">Clave API:</label>
-                            <input type="text" name="fApiClave" id="fApiClave" value="{{ old('fApiClave') }}" class="field-input @error('fApiClave') field-error @enderror">
-                            @error('fApiClave')
+                            <label for="fapiclave" class="field-label">Clave API:</label>
+                            <input type="text" name="fapiclave" id="fapiclave" value="{{ old('fapiclave') }}" class="field-input @error('fapiclave') field-error @enderror">
+                            @error('fapiclave')
                                 <p class="error-message">{{ $message }}</p>
                             @enderror
 
