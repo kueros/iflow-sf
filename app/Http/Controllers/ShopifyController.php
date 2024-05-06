@@ -46,25 +46,11 @@ class ShopifyController extends Controller
 			'fApiClave' => 'required',
 		]);
 
-		#Verifico si la tienda ya existe en la base de datos
-		$laTiendaExiste = Shopify::where([
-			'shop' => $request->input('shop'), 
-			'fApiUsr' => $request->input('fApiUsr'), 
-			'fApiClave' => $request->input('fApiClave')
-		])->exists();
-
-		#Si la tienda no existe en la base de datos, la creo y a continuación llamo al método install()
-		if (!$laTiendaExiste) {
-			Shopify::updateOrInsert(
-				['shop' => $request->input('shop'), 'fApiUsr' => $request->input('fApiUsr'), 'fApiClave' => $request->input('fApiClave')],
-				[  'created_at' => now(), 'updated_at' => now()]
-			);
-			return redirect($this->url_root . '/install');
-		} else {
-			echo "<pre>";
-			print_r("la tienda {$request->input('shop')} ya existe.");
-			echo "</pre>";
-		}
+		Shopify::updateOrInsert(
+			['fApiUsr' => $request->input('fApiUsr'), 'shop' => $request->input('shop')],
+			['fApiClave' => $request->input('fApiClave'), 'created_at' => now(), 'updated_at' => now()]
+		);
+		return redirect($this->url_root . '/install');
 	}
 	/*************************************************************************************************************
 	 * INSTALL
@@ -82,7 +68,7 @@ class ShopifyController extends Controller
 
 		#Chupo los shopifyDatos del último registro de la tabla
 		$shopifyDatos = Shopify::latest()->first();
-
+		#dd($shopifyDatos);
 		$install = "https://" . $shopifyDatos->shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scope . "&redirect_uri=" . $redirect_url;
 		#dd($install);
 		return redirect($install);
@@ -155,7 +141,7 @@ class ShopifyController extends Controller
 				CURLOPT_FOLLOWLOCATION => true,
 				CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 				CURLOPT_CUSTOMREQUEST => 'POST',
-				CURLOPT_POSTFIELDS => '{"webhook":{"address":"pubsub://projectName38:topicName","topic":"orders/create","format":"json"}}',
+				CURLOPT_POSTFIELDS => '{"webhook":{"address":"pubsub://projectName42:topicName","topic":"orders/create","format":"json"}}',
 				CURLOPT_HTTPHEADER => array(
 					'X-Shopify-Topic: orders/create',
 					'X-Shopify-Shop-Domain: ' . $shopifyDatos->shop,
@@ -177,8 +163,9 @@ class ShopifyController extends Controller
 				echo "<p style='color: green;'>Webhook creado exitosamente<br/><br/>";
 			}
 			Shopify::updateOrInsert(
-				['shop' => $shopifyDatos->shop, 'fApiUsr' => $shopifyDatos->fapiusr, 'fApiClave' => $shopifyDatos->fapiclave],
-				['hmac' => $hmac, 'code' => $code, 'host' => $host, 'access_token' => $access_token, 'state' => $state, 'webhook' => $response]
+				['shop' => $shopifyDatos->shop, 'fApiUsr' => $shopifyDatos->fapiusr],
+				['fApiClave' => $shopifyDatos->fapiclave, 'hmac' => $hmac, 'code' => $code, 'host' => $host, 'access_token' => $access_token, 'state' => $state, 'webhook' => $response,
+				'created_at' => now(), 'updated_at' => now()]
 			);
 			// Procesar los resultados
 			$result = Shopify::all(); //->each(function($shopifyDatos)
@@ -189,6 +176,15 @@ class ShopifyController extends Controller
 				echo "Code: " . $shopify->code . '<br/>';
 			});
 		}
+		$crearCarrier = $this->carrierCreate();
+		$crearWebhookOrdersPaid = $this->webhookCreateOrdersPaid();
+		$crearWebhookOrdersCancelled = $this->webhookCreateOrdersCancelled();
+		echo "<pre>";
+		print_r($crearCarrier);
+		print_r($crearWebhookOrdersPaid);
+		print_r($crearWebhookOrdersCancelled);
+		echo "</pre>";
+		
 		return;
 	}
 
@@ -243,6 +239,8 @@ class ShopifyController extends Controller
 		curl_close($curl);
 		// Procesa los datos del response decodificando el JSON
 		$responseJSON = json_decode($response, true);
+		#echo "responseJSON";
+		#var_dump($responseJSON);
 		$carrierId = $responseJSON['carrier_service']['id'];
 		// Muestra el JSON del response
 		echo "JSON del response:";
@@ -255,9 +253,12 @@ class ShopifyController extends Controller
 		);
 		if (str_contains($response, 'error')) {
 			echo "La operación dio el siguiente error: " . $response;
+			$mensaje = "La operación dio el siguiente error: " . $response;
 		} else {
 			echo "Carrier {$carrierId} creado con éxito";
+			$mensaje = "Carrier {$carrierId} creado con éxito";
 		}
+		return $mensaje;
 	}
 
 	/*************************************************************************************************************
@@ -496,7 +497,7 @@ class ShopifyController extends Controller
 
 		$response = curl_exec($curl);
 		curl_close($curl);
-		#∫dd($response);
+		#dd($response);
 		// Procesa los datos del response decodificando el JSON
 		$responseJSON = json_decode($response, true);
 		$webhookId = $responseJSON['webhook']['id'];
@@ -511,9 +512,12 @@ class ShopifyController extends Controller
 		);
 		if (str_contains($response, 'error')) {
 			echo "La operación dio el siguiente error: " . $response;
+			$mensaje = "La operación dio el siguiente error: " . $response;
 		} else {
 			echo "Webhook {$webhookId} creado con éxito";
+			$mensaje = "Webhook {$webhookId} creado con éxito";
 		}
+		return $mensaje;
 	}
 
 	/*************************************************************************************************************
@@ -578,9 +582,12 @@ class ShopifyController extends Controller
 		);
 		if (str_contains($response, 'error')) {
 			echo "La operación dio el siguiente error: " . $response;
+			$mensaje = "La operación dio el siguiente error: " . $response;
 		} else {
 			echo "Webhook {$webhookId} creado con éxito";
+			$mensaje = "Webhook {$webhookId} creado con éxito";
 		}
+		return $mensaje;
 	}
 
 	/*************************************************************************************************************

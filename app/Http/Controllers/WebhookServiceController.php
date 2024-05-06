@@ -2,14 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Shopify;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Redirect;
-use Shopify\Rest\Admin2024_04\CarrierService;
-use Shopify\Utils;
 
-class ShopifyWebhook
+class WebhookServiceController extends Controller
 {
     private $shop;
     private $accessToken;
@@ -48,6 +43,7 @@ class ShopifyWebhook
     public function listWebhooks()
     {
         $method = 'GET';
+        $this->shop = "zeusintegra.myshopify.com";
         return $this->makeRequest('webhooks', $method);
     }
 
@@ -81,4 +77,9 @@ class ShopifyWebhook
 
         return json_decode($response, true);
     }
+
 }
+
+
+
+

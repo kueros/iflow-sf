@@ -36,8 +36,9 @@ class CarrierServiceController extends Controller
                 "service_discovery" => true
             ]
         ];
+# callback_url levantar desde el .env
 
-        $response = $api->callAPI('POST', 'carrier_services', $data);
+$response = $api->callAPI('POST', 'carrier_services', $data);
         echo "<pre>";
         print_r($response);
         echo "</pre>";
@@ -238,7 +239,6 @@ class CarrierServiceController extends Controller
     public function webhookList()
     {
         $shopifyDatos = Shopify::latest()->first();
-        #dd($shopifyDatos);
         $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
 
         $response = $api->callAPI('GET', "webhooks");
