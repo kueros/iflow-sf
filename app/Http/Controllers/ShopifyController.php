@@ -66,13 +66,11 @@ class ShopifyController extends Controller
 		$api_key = config('sfenv.api_key');
 		$redirect_url =  config('sfenv.redirect_url');
 		$scope =  config('sfenv.scope');
-		#dd($api_key.PHP_EOL.$redirect_url.PHP_EOL.$scope);
 
 		#Chupo los shopifyDatos del último registro de la tabla
 		$shopifyDatos = Shopify::latest()->first();
-		#dd($shopifyDatos);
 		$install = "https://" . $shopifyDatos->shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scope . "&redirect_uri=" . $redirect_url;
-		#dd($install);
+		#Desde aquí se llama al método segundowebhook que figura a continuación
 		return redirect($install);
 	}
 	/*************************************************************************************************************
@@ -238,7 +236,7 @@ class ShopifyController extends Controller
 		$carrierId = $response['carrier_service']['id'];
         // Procesa los datos del response encodificando el JSON
 		$responseJSON = json_encode($response, true);
-#dd($fapiusr.' - '.$fapiclave);
+
 		$shopify = Shopify::create([
 			'shop' => $shop, 
 			'fapiusr' => $fapiusr,
@@ -257,10 +255,6 @@ class ShopifyController extends Controller
 		}
 
 	}
-
-
-
-
 
     /*************************************************************************************************************
 	 * CARRIER SHOW
@@ -286,8 +280,8 @@ class ShopifyController extends Controller
     public function carrierList()
     {
         $shopifyDatos = Shopify::latest()->first();
-        #dd($shopifyDatos);
-        $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
+
+		$api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
 
         $response = $api->callAPI('GET', "carrier_services");
         echo "<pre>";
@@ -299,10 +293,6 @@ class ShopifyController extends Controller
 	 * CARRIER DELETE
 	 *
 	 * @return \Illuminate\Http\Response
-     * 
-     * 
-     * En los delete agregar la sentencia de borrado de datos en la tabla.
-     * 
      * 
      * 
 	 *************************************************************************************************************/
@@ -330,8 +320,6 @@ class ShopifyController extends Controller
             echo "Carrier $carrierId borrado con éxito";
         }
     }
-
-
 
 	/*************************************************************************************************************
      * ACA COMIENZA LA LOGICA DE LOS WEBHOOKS

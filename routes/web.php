@@ -36,21 +36,10 @@ Route::get('/webhookShow/{webhookId}', [ShopifyController::class, 'webhookShow']
 Route::get('/webhookCreateOrdersPaid', [ShopifyController::class, 'webhookCreateOrdersPaid'])->name('ShopifyController.webhookCreateOrdersPaid');
 Route::get('/webhookCreateOrdersCancelled', [ShopifyController::class, 'webhookCreateOrdersCancelled'])->name('ShopifyController.webhookCreateOrdersCancelled');
 
-
-Route::get('/psd1', [Psd_002Controller::class, 'index'])->name('psd1.index');
-#Route::get('/psd_002/{parametro1}/{parametro2}/{parametro3}/{parametro4}', [Psd_002Controller::class, 'index'])->name('psd2.index');
-
 Route::delete('/shopify/{id}', [ShopifyController::class, 'destroy'])->name('shopify.destroy');
-
-#Route::get('/shopify/{id}', [ShopifyController::class, 'show'])->name('shopify.view');
-
 Route::get('/shopify/crear', [ShopifyController::class, 'create'])->name('shopify.create');
-
 Route::post('/shopify', [ShopifyController::class, 'store'])->name('shopify.store');
-
 Route::get('/shopify/{id}/editar', [ShopifyController::class, 'edit'])->name('shopify.edit');
-
 Route::put('/shopify/{id}', [ShopifyController::class, 'update'])->name('shopify.update');
-
 
 
