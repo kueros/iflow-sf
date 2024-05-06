@@ -22,7 +22,7 @@ class CarrierServiceController extends Controller
      * 
      * EVALUAR con Pablo qué datos se le van a pasar a la hora de la creación del carrier, supongo que será un json ccon lo necesario.
 	 *************************************************************************************************************/
-    public function carrierCreate()
+    public function carrierCreate1()
     {
         $shopifyDatos = Shopify::latest()->first();
         $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);

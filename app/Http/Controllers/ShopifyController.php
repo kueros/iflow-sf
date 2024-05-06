@@ -176,11 +176,11 @@ class ShopifyController extends Controller
 				echo "Code: " . $shopify->code . '<br/>';
 			});
 		}
-		$crearCarrier = $this->carrierCreate();
+		$crearShipingCarrier = $this->carrierCreate();
 		$crearWebhookOrdersPaid = $this->webhookCreateOrdersPaid();
 		$crearWebhookOrdersCancelled = $this->webhookCreateOrdersCancelled();
 		echo "<pre>";
-		print_r($crearCarrier);
+		print_r($crearShipingCarrier);
 		print_r($crearWebhookOrdersPaid);
 		print_r($crearWebhookOrdersCancelled);
 		echo "</pre>";
