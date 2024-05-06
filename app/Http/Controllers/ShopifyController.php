@@ -39,18 +39,32 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
 	public function store(Request $request)
 	{
+		#Valido los datos enviados desde el formulario
 		$request->validate([
 			'shop' => 'required',
 			'fApiUsr' => 'required',
 			'fApiClave' => 'required',
 		]);
 
-		Shopify::updateOrInsert(
-			['shop' => $request->input('shop'), 'fApiUsr' => $request->input('fApiUsr'), 'created_at' => now(), 'updated_at' => now()],
-			['fApiClave' => $request->input('fApiClave')]
-		);
+		#Verifico si la tienda ya existe en la base de datos
+		$laTiendaExiste = Shopify::where([
+			'shop' => $request->input('shop'), 
+			'fApiUsr' => $request->input('fApiUsr'), 
+			'fApiClave' => $request->input('fApiClave')
+		])->exists();
 
-		return redirect($this->url_root . '/install'); #('.$request.')');
+		#Si la tienda no existe en la base de datos, la creo y a continuación llamo al método install()
+		if (!$laTiendaExiste) {
+			Shopify::updateOrInsert(
+				['shop' => $request->input('shop'), 'fApiUsr' => $request->input('fApiUsr'), 'fApiClave' => $request->input('fApiClave')],
+				[  'created_at' => now(), 'updated_at' => now()]
+			);
+			return redirect($this->url_root . '/install');
+		} else {
+			echo "<pre>";
+			print_r("la tienda {$request->input('shop')} ya existe.");
+			echo "</pre>";
+		}
 	}
 	/*************************************************************************************************************
 	 * INSTALL
@@ -68,9 +82,8 @@ class ShopifyController extends Controller
 
 		#Chupo los shopifyDatos del último registro de la tabla
 		$shopifyDatos = Shopify::latest()->first();
-		$shop = $shopifyDatos->shop;
 
-		$install = "https://" . $shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scope . "&redirect_uri=" . $redirect_url;
+		$install = "https://" . $shopifyDatos->shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scope . "&redirect_uri=" . $redirect_url;
 		#dd($install);
 		return redirect($install);
 	}
@@ -81,24 +94,20 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
 	public function segundowebhook()
 	{
-		// Set variables for our request
+		#Me traigo la última tienda creada desde la tabla
+		$shopifyDatos = Shopify::latest()->first();
+		#Cargo los datos desde el .env
 		$api_key = env('CLI_ID');
 		$shared_secret = env('CLI_PASS');
-		$shopifyDatos = Shopify::latest()->first();
-		#dd($api_key);
-		$shop = $shopifyDatos->shop;
-		$fApiUsr = $shopifyDatos->fapiusr;
-		$fApiClave = $shopifyDatos->fapiclave;
-
+		#Cargo los datos desde el formulario
 		$params = $_GET;
 		$hmac = isset($_GET['hmac']) ? $_GET['hmac'] : '';
 		$code = isset($_GET['code']) ? $_GET['code'] : '';
 		$state = isset($_GET['state']) ? $_GET['state'] : '';
 		$host = isset($_GET['host']) ? $_GET['host'] : '';
-		#dd($params);
+
 		$params = array_diff_key($params, array('hmac' => '')); // Remove hmac from params
 		ksort($params); // Sort params lexigraphically
-		#dd($params);
 		$computed_hmac = hash_hmac('sha256', http_build_query($params), $shared_secret);
 
 		// Use hmac data to check that the response is from Shopify or not
@@ -130,37 +139,10 @@ class ShopifyController extends Controller
 			// Show the access token (don't do this in production!)
 			echo "token devuelto: ";
 			$state = '1';
-			Shopify::updateOrInsert(
-				['shop' => $shop, 'fApiUsr' => $fApiUsr, 'fApiClave' => $fApiClave, 'created_at' => now(), 'updated_at' => now()],
-				['hmac' => $hmac, 'code' => $code, 'host' => $host, 'access_token' => $access_token, 'state' => $state]
-			);
-
-			//********************************************* */
-			// URL de tu webhook
-			$webhook_url = 'http://localhost/sf/psd_004.php';
-
 			// Configura la URL de la API de Shopify
-			$api_url = "https://$shop/admin/api/2024-01";
-
-			// Define los datos del webhook
-			$webhook_data = [
-				'webhook' => [
-					'topic' => 'orders/create',
-					'address' => $webhook_url,
-					'format' => 'json'
-				]
-			];
-			// Configura las opciones de la solicitud
-			$options = [
-				'http' => [
-					'header' => "Content-type: application/json\r\n",
-					'method' => 'POST',
-					'content' => json_encode($webhook_data),
-				],
-			];
+			$api_url = "https://$shopifyDatos->shop/admin/api/2024-01";
 
 			// Realiza la solicitud para crear el webhook
-			$context = stream_context_create($options);
 			$curl_url = $api_url . '/webhooks.json';
 
 			$curl = curl_init();
@@ -173,10 +155,10 @@ class ShopifyController extends Controller
 				CURLOPT_FOLLOWLOCATION => true,
 				CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 				CURLOPT_CUSTOMREQUEST => 'POST',
-				CURLOPT_POSTFIELDS => '{"webhook":{"address":"pubsub://projectName35:topicName","topic":"orders/create","format":"json"}}',
+				CURLOPT_POSTFIELDS => '{"webhook":{"address":"pubsub://projectName38:topicName","topic":"orders/create","format":"json"}}',
 				CURLOPT_HTTPHEADER => array(
 					'X-Shopify-Topic: orders/create',
-					'X-Shopify-Shop-Domain: ' . $shop,
+					'X-Shopify-Shop-Domain: ' . $shopifyDatos->shop,
 					'X-Shopify-API-Version: 2024-04',
 					'X-Shopify-Access-Token: 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',
 					'Content-Type: application/json',
@@ -195,8 +177,8 @@ class ShopifyController extends Controller
 				echo "<p style='color: green;'>Webhook creado exitosamente<br/><br/>";
 			}
 			Shopify::updateOrInsert(
-				['shop' => $shop, 'fApiUsr' => $fApiUsr, 'fApiClave' => $fApiClave, 'created_at' => now(), 'updated_at' => now()],
-				['hmac' => $hmac, 'code' => $code, 'host' => $host, 'access_token' => $access_token, 'state' => $state, 'token' => $response]
+				['shop' => $shopifyDatos->shop, 'fApiUsr' => $shopifyDatos->fapiusr, 'fApiClave' => $shopifyDatos->fapiclave],
+				['hmac' => $hmac, 'code' => $code, 'host' => $host, 'access_token' => $access_token, 'state' => $state, 'webhook' => $response]
 			);
 			// Procesar los resultados
 			$result = Shopify::all(); //->each(function($shopifyDatos)
@@ -318,7 +300,7 @@ class ShopifyController extends Controller
 		echo "</pre>";
 	}
 
-		/*************************************************************************************************************
+	/*************************************************************************************************************
 	 * CARRIERLIST
 	 *
 	 * @return \Illuminate\Http\Response

@@ -1,7 +1,8 @@
 <?php
 
 use App\Http\Controllers\ShopifyController;
-use App\Http\Controllers\ShipperController;
+use App\Http\Controllers\ShopifyAPI;
+use App\Http\Controllers\CarrierServiceController;
 use App\Http\Controllers\Psd_002Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -19,27 +20,20 @@ use Shopify\Clients\Rest;
 */
 
 Route::get('/shopify', [ShopifyController::class, 'index'])->name('shopify.index');
-
 Route::get('/install', [ShopifyController::class, 'install'])->name('shopify.install');
-
 Route::get('/segundowebhook', [ShopifyController::class, 'segundowebhook'])->name('shopify.segundowebhook');
-#Route::get('/segundowebhook', [Psd_002Controller::class, 'segundowebhook'])->name('psd_002.segundowebhook');
 
-Route::get('/carrierCreate', [ShopifyController::class, 'carrierCreate'])->name('shopify.carrierCreate');
-#Route::get('/carriercreate/{shop}', [ShopifyController::class, 'carrierCreate'])->name('shopify.carriercreate');
-Route::get('/carrierList', [ShopifyController::class, 'carrierList'])->name('shopify.carrierList');
-Route::get('/carrierShow/{carrierId}', [ShopifyController::class, 'carrierShow'])->name('shopify.carrierShow');
-Route::get('/carrierDelete/{carrierId}', [ShopifyController::class, 'carrierDelete'])->name('shopify.carrierDelete');
+Route::get('/carrierList', [CarrierServiceController::class, 'carrierList'])->name('CarrierServiceController.carrierList');
+Route::get('/carrierCreate', [CarrierServiceController::class, 'carrierCreate'])->name('CarrierServiceController.carrierCreate');
+Route::get('/carrierShow/{carrierId}', [CarrierServiceController::class, 'carrierShow'])->name('CarrierServiceController.carrierShow');
+Route::get('/carrierDelete/{carrierId}', [CarrierServiceController::class, 'carrierDelete'])->name('CarrierServiceController.carrierDelete');
 
-Route::get('/webhookCreate', [ShopifyController::class, 'webhookCreate'])->name('shopify.webhookCreate');
-Route::get('/webhookCreateOrdersPaid', [ShopifyController::class, 'webhookCreateOrdersPaid'])->name('shopify.webhookCreateOrdersPaid');
-Route::get('/webhookCreateOrdersCancelled', [ShopifyController::class, 'webhookCreateOrdersCancelled'])->name('shopify.webhookCreateOrdersCancelled');
-Route::get('/webhookList', [ShopifyController::class, 'webhookList'])->name('shopify.webhookList');
-Route::get('/webhookShow/{webhookId}', [ShopifyController::class, 'webhookShow'])->name('shopify.webhookShow');
-Route::get('/webhookDelete/{webhookId}', [ShopifyController::class, 'webhookDelete'])->name('shopify.webhookDelete');
-#Route::get('/webhook/{parametro1}/{parametro2}/{parametro3}/{parametro4}', [Psd_002Controller::class, 'webhook'])->name('psd_002.webhook');
-
-#Route::post('/action/{shop}/rates', 'ShipperController@rates');
+Route::get('/webhookCreate', [CarrierServiceController::class, 'webhookCreate'])->name('CarrierServiceController.webhookCreate');
+Route::get('/webhookDelete/{webhookId}', [CarrierServiceController::class, 'webhookDelete'])->name('CarrierServiceController.webhookDelete');
+Route::get('/webhookList', [CarrierServiceController::class, 'webhookList'])->name('CarrierServiceController.webhookList');
+Route::get('/webhookShow/{webhookId}', [CarrierServiceController::class, 'webhookShow'])->name('CarrierServiceController.webhookShow');
+Route::get('/webhookCreateOrdersPaid', [CarrierServiceController::class, 'webhookCreateOrdersPaid'])->name('CarrierServiceController.webhookCreateOrdersPaid');
+Route::get('/webhookCreateOrdersCancelled', [CarrierServiceController::class, 'webhookCreateOrdersCancelled'])->name('CarrierServiceController.webhookCreateOrdersCancelled');
 
 
 Route::get('/psd1', [Psd_002Controller::class, 'index'])->name('psd1.index');
