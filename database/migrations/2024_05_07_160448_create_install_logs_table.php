@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('install_logs', function (Blueprint $table) {
             $table->id();
+            $table->string('hmac')->nullable();
+            $table->string('host')->nullable();
+            $table->string('shop');
+            $table->string('state')->nullable();
+            $table->string('fapiusr');
+            $table->string('fapiclave');
+            $table->string('code')->nullable();
+            $table->string('access_token')->nullable();
+            $table->json('token')->nullable();
             $table->timestamps();
         });
     }
