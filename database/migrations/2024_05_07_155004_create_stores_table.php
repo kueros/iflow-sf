@@ -11,17 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('shopify', function (Blueprint $table) {
+        Schema::create('stores', function (Blueprint $table) {
             $table->id();
-            $table->string('hmac')->nullable();
-            $table->string('host')->nullable();
-            $table->string('shop');
-            $table->string('state')->nullable();
+            $table->string('idShop');
+            $table->string('token')->nullable();
+            $table->string('code')->nullable();;
+            $table->string('cuit')->nullable();
+            $table->string('shop')->nullable();
             $table->string('fapiusr');
             $table->string('fapiclave');
-            $table->string('code')->nullable();
-            $table->string('access_token')->nullable();
-            $table->json('token')->nullable();
+            $table->string('hmac')->nullable();
+            $table->string('host')->nullable();
+            $table->string('state')->default('activo');
             $table->softDeletes();
             $table->timestamps();
         });
@@ -32,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('shopify');
+        Schema::dropIfExists('stores');
     }
 };
