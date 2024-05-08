@@ -10,5 +10,5 @@ class Store extends Model
     protected $table = 'stores';
     use SoftDeletes;
 
-    protected $fillable = ['shopId', 'token', 'code', 'cuit', 'shop', 'fapiusr', 'fapiclave', 'hmac', 'host', 'state'];
+    protected $fillable = ['token', 'code', 'cuit', 'shop', 'fapiusr', 'fapiclave', 'hmac', 'host', 'state'];
 }

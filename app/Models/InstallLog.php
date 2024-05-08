@@ -9,6 +9,6 @@ class InstallLog extends Model
 {
     protected $table = 'install_logs';
     use SoftDeletes;
-    protected $fillable = ['hmac', 'host', 'shop', 'state', 'fapiusr', 'fapiclave', 'code', 'access_token', 'token', 'carrier', 'webhook'];
+    protected $fillable = ['shopId', 'token', 'code', 'cuit', 'shop', 'fapiusr', 'fapiclave', 'hmac', 'host', 'state'];
 
 }

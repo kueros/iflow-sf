@@ -20,9 +20,6 @@
                                     <button><i class="icon icon-trash "></button></i>
                                 </a>
                                 &nbsp;&nbsp;
-                                <a href="{{ $shopifyDato->editUrl() }}" class="action-link action-edit">
-                                    <i class="icon icon-pen"></i>
-                                </a>
                             </form>
                         </div>
                         <footer class="card-footer">

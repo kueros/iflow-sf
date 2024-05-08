@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('webhooks', function (Blueprint $table) {
             $table->id();
             $table->string('webhookId');
-            $table->string('shop');
+            $table->string('shopId');
             $table->string('url');
             $table->string('tipo')->nullable();
             $table->string('state')->default('activo');

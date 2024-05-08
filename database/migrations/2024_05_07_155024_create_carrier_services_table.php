@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('carrier_services', function (Blueprint $table) {
             $table->id();
-            $table->string('carrierId');
-            $table->string('callbackcUrl');
+            $table->string('carrierServiceId');
+            $table->string('shopId');
+            $table->string('callbackUrl');
             $table->string('nombre');
             $table->string('tipo')->nullable();
             $table->string('state')->default('activo');

@@ -33,8 +33,15 @@
                             @error('content')
                                 <p class="error-message">{{ $message }}</p>
                             @enderror
+
                             <label for="fapiclave" class="field-label">Clave API:</label>
                             <input type="text" name="fapiclave" id="fapiclave" value="{{ old('fapiclave', $dato->fapiclave) }}" class="field-input @error('fapiclave') field-error @enderror">
+                            @error('content')
+                                <p class="error-message">{{ $message }}</p>
+                            @enderror
+
+                            <label for="cuit" class="field-label">Clave API:</label>
+                            <input type="text" name="cuit" id="cuit" value="{{ old('cuit', $dato->cuit) }}" class="field-input @error('cuit') field-error @enderror">
                             @error('content')
                                 <p class="error-message">{{ $message }}</p>
                             @enderror

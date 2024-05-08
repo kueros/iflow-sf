@@ -39,6 +39,12 @@
                                 <p class="error-message">{{ $message }}</p>
                             @enderror
 
+                            <label for="cuit" class="field-label">CUIT:</label>
+                            <input type="text" name="cuit" id="cuit" value="{{ old('cuit') }}" class="field-input @error('cuit') field-error @enderror">
+                            @error('cuit')
+                                <p class="error-message">{{ $message }}</p>
+                            @enderror
+
                             <button type="submit" class="btn btn-primary">Crear tienda</button>
                         </form>
                     </div>

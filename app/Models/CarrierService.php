@@ -9,5 +9,5 @@ class CarrierService extends Model
 {
     protected $table = 'carrier_services';
     use SoftDeletes;
-    protected $fillable = ['carrierId', 'shopId', 'callbackUrl', 'nombre', 'tipo', 'state'];
+    protected $fillable = ['carrierServiceId', 'shopId', 'callbackUrl', 'nombre', 'tipo', 'state'];
 }

@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Shopify;
+use App\Models\Store;
+use App\Models\InstallLog;
+use App\Models\Webhook;
+use App\Models\CarrierService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Redirect;
-use Shopify\Rest\Admin2024_04\CarrierService;
+#use Shopify\Rest\Admin2024_04\CarrierService;
 use Shopify\Utils;
 
 class ShopifyController extends Controller
@@ -27,11 +30,11 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
 	public function index()
 	{
-		$shopifyDatos = Shopify::query()
+		$storeDatos = Store::query()
 			->orderByDesc('id')
 			->get();
 
-		return view('shopify.index')->with('shopifyDatos', $shopifyDatos);
+		return view('shopify.index')->with('shopifyDatos', $storeDatos);
 	}
 
 	/*************************************************************************************************************
@@ -46,11 +49,18 @@ class ShopifyController extends Controller
 			'shop' => 'required',
 			'fapiusr' => 'required',
 			'fapiclave' => 'required',
+			'cuit' => 'required',
 		]);
-
-		Shopify::updateOrInsert(
-			['fapiusr' => $request->input('fapiusr'), 'shop' => $request->input('shop')],
-			['fapiclave' => $request->input('fapiclave'), 'created_at' => now(), 'updated_at' => now()]
+#dd($request);
+		Store::updateOrInsert(
+			['shop' => $request->input('shop')],
+			['fapiusr' => $request->input('fapiusr'), 'fapiclave' => $request->input('fapiclave'),'cuit' => $request->input('cuit'), 'created_at' => now(), 'updated_at' => now()]
+		);
+		$storeShopId = Store::latest()->first('id');
+		##dd($storeShopId);
+		InstallLog::updateOrInsert(
+			['shopId' => $storeShopId->id, 'shop' => $request->input('shop')],
+			['fapiusr' => $request->input('fapiusr'), 'fapiclave' => $request->input('fapiclave'), 'created_at' => now(), 'updated_at' => now()]
 		);
 		return redirect($this->url_root . '/install');
 	}
@@ -67,9 +77,9 @@ class ShopifyController extends Controller
 		$redirect_url =  config('sfenv.redirect_url');
 		$scope =  config('sfenv.scope');
 
-		#Chupo los shopifyDatos del último registro de la tabla
-		$shopifyDatos = Shopify::latest()->first();
-		$install = "https://" . $shopifyDatos->shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scope . "&redirect_uri=" . $redirect_url;
+		#Chupo los storeDatos del último registro de la tabla
+		$storeDatos = Store::latest()->first();
+		$install = "https://" . $storeDatos->shop . "/admin/oauth/authorize?client_id=" . $api_key . "&scope=" . $scope . "&redirect_uri=" . $redirect_url;
 		#Desde aquí se llama al método segundowebhook que figura a continuación
 		return redirect($install);
 	}
@@ -81,7 +91,7 @@ class ShopifyController extends Controller
 	public function segundowebhook()
 	{
 		#Me traigo la última tienda creada desde la tabla
-		$shopifyDatos = Shopify::latest()->first();
+		$storeDatos = Store::latest()->first();
 		#Cargo los datos desde el .env
 		$api_key = env('CLI_ID');
 		$shared_secret = env('CLI_PASS');
@@ -104,9 +114,9 @@ class ShopifyController extends Controller
 				"client_secret" => $shared_secret, // Your app credentials (secret key)
 				"code" => $params['code'] // Grab the access key from the URL
 			);
-			$psd = $params['shop'];
+			$shop = $params['shop'];
 			// Generate access token URL
-			$access_token_url = "https://" . $psd . "/admin/oauth/access_token";
+			$access_token_url = "https://" . $shop . "/admin/oauth/access_token";
 
 			// Configure curl client and execute request
 			$ch = curl_init();
@@ -119,14 +129,13 @@ class ShopifyController extends Controller
 
 			// Store the access token
 			$result = json_decode($result, true);
-			#dd($result);
+#dd($result);
 			$access_token = $result['access_token'];
 
 			// Show the access token (don't do this in production!)
-			echo "token devuelto: ";
-			$state = '1';
+			$state = (isset($state)) ? $state : 'Activo';
 			// Configura la URL de la API de Shopify
-			$api_url = "https://$shopifyDatos->shop/admin/api/2024-01";
+			$api_url = "https://$storeDatos->shop/admin/api/2024-01";
 
 			// Realiza la solicitud para crear el webhook
 			$curl_url = $api_url . '/webhooks.json';
@@ -141,10 +150,20 @@ class ShopifyController extends Controller
 				CURLOPT_FOLLOWLOCATION => true,
 				CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 				CURLOPT_CUSTOMREQUEST => 'POST',
-				CURLOPT_POSTFIELDS => '{"webhook":{"address":"pubsub://projectName45:topicName","topic":"orders/create","format":"json"}}',
+				CURLOPT_POSTFIELDS => '{
+					"webhook":
+
+
+
+
+
+						{"address":"pubsub://projectName01:topicName",
+							"topic":"orders/create",
+							"format":"json"}
+						}',
 				CURLOPT_HTTPHEADER => array(
 					'X-Shopify-Topic: orders/create',
-					'X-Shopify-Shop-Domain: ' . $shopifyDatos->shop,
+					'X-Shopify-Shop-Domain: ' . $storeDatos->shop,
 					'X-Shopify-API-Version: 2024-04',
 					'X-Shopify-Access-Token: ' . $access_token,
 					'Content-Type: application/json',
@@ -153,7 +172,8 @@ class ShopifyController extends Controller
 			));
 			$response = curl_exec($curl);
 			curl_close($curl);
-			echo 'otra prueba: ' . $response;
+			echo 'otra prueba: ';
+#dd($response);
 
 			// Verifica el resultado
 			if ($result === FALSE) {
@@ -162,32 +182,67 @@ class ShopifyController extends Controller
 			} else {
 				echo "<p style='color: green;'>Webhook creado exitosamente<br/><br/>";
 			}
-			$shopify = Shopify::create([
-				'shop' => $shopifyDatos->shop, 
-				'fapiusr' => $shopifyDatos->fapiusr,
-				'fapiclave' => $shopifyDatos->fapiclave, 
-				'hmac' => $hmac, 
+			# Creo el registro y guardo los datos en la tabla Stores
+			$store = Store::create([
+				'token' => $access_token, 
 				'code' => $code, 
+				'cuit' => $storeDatos->cuit, 
+				'shop' => $storeDatos->shop, 
+				'fapiusr' => $storeDatos->fapiusr,
+				'fapiclave' => $storeDatos->fapiclave, 
+				'hmac' => $hmac, 
 				'host' => $host, 
-				'access_token' => $access_token, 
 				'state' => $state, 
-				'webhook' => $response,
 				'created_at' => now(), 
 				'updated_at' => now()
 			]);
-			$shopify->save();
+			$store->save();
+
+			# Creo el registro y guardo los datos en la tabla Webhooks
+			$shopId = Store::latest()->first('id');
+			$responseArray = json_decode($response, true);
+			#dd($responseArray['webhook']['id']);
+			$webhookId = $responseArray['webhook']['id'];
+			$webhook = Webhook::create([
+				'webhookId' => $webhookId, 
+				'shopId' => $shopId['id'], 
+				'url' => $responseArray['webhook']['address'], 
+				'tipo' => $responseArray['webhook']['topic'], 
+				'state' => $state, 
+				'created_at' => now(), 
+				'updated_at' => now()
+			]);
+			$webhook->save();
+
+			# Creo el registro y guardo los datos en la tabla installLogs
+			$installLog = InstallLog::create([
+				'shopId' => $shopId['id'], 
+				'token' => $access_token, 
+				'code' => $code, 
+				'cuit' => $storeDatos->cuit, 
+				'shop' => $storeDatos->shop, 
+				'fapiusr' => $storeDatos->fapiusr,
+				'fapiclave' => $storeDatos->fapiclave, 
+				'hmac' => $hmac, 
+				'host' => $host, 
+				'state' => $state, 
+				'created_at' => now(), 
+				'updated_at' => now()
+			]);
+			$installLog->save();
 
 			
 
 			// Procesar los resultados
-			$result = Shopify::all(); //->each(function($shopifyDatos)
+			$result = Store::all(); //->each(function($shopifyDatos)
 			#dd($result);
-			$result->each(function ($shopify) {
-				echo "Tienda: " . $shopify->shop . '<br/>';
-				echo "TOKEN: " . $shopify->access_token . '<br/>';
-				echo "Code: " . $shopify->code . '<br/>';
+			$result->each(function ($store) {
+				echo "Tienda: " . $store->shop . '<br/>';
+				echo "TOKEN: " . $store->access_token . '<br/>';
+				echo "Code: " . $store->code . '<br/>';
 			});
 		}
+
 		$crearShipingCarrier = $this->carrierCreate();
 		$crearWebhookOrdersPaid = $this->webhookCreateOrdersPaid();
 		$crearWebhookOrdersCancelled = $this->webhookCreateOrdersCancelled();
@@ -211,14 +266,16 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
 	public function carrierCreate()
 	{
-		$shopifyDatos = Shopify::latest()->first();
-		$shop = $shopifyDatos->shop;
-		$fapiusr = $shopifyDatos->fapiusr;
-		$fapiclave = $shopifyDatos->fapiclave;
-		$access_token = $shopifyDatos->access_token;
-		$api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
+		$storeDatos = Store::latest()->first();
+		#dd($storeDatos);
+		$shop = $storeDatos->shop;
+		$fapiusr = $storeDatos->fapiusr;
+		$fapiclave = $storeDatos->fapiclave;
+		$access_token = $storeDatos->access_token;
+#		$api = new ShopifyAPI($storeDatos->shop, $storeDatos->access_token);
+		$api = new ShopifyAPI($storeDatos->shop, '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');
 		$callback_url = env('CALLBACK_URL_CARRIER',);
-
+		
 		$data = [
 			"carrier_service" => [
 				"name" => "IFLOW S.A.",
@@ -233,26 +290,38 @@ class ShopifyController extends Controller
         echo "<pre>";
         print_r($response);
         echo "</pre>";
-		$carrierId = $response['carrier_service']['id'];
-        // Procesa los datos del response encodificando el JSON
-		$responseJSON = json_encode($response, true);
+		#dd($response);
 
-		$shopify = Shopify::create([
-			'shop' => $shop, 
-			'fapiusr' => $fapiusr,
-			'fapiclave' => $fapiclave, 
-			'access_token' => $access_token,
-			'carrier' => $responseJSON,
+		$state = (isset($state)) ? $state : 'Activo';
+		# Creo el registro y guardo los datos en la tabla Webhooks
+		$shopId = Store::latest()->first('id');
+		$shop = Store::latest()->first('shop');
+		$shopNombre = $shop['shop'];
+#dd($shopNombre);
+		$carrierId = $response['carrier_service']['id'];
+		$carrierCallbackUrl = $response['carrier_service']['callback_url'];
+		$carrierTipo = $response['carrier_service']['admin_graphql_api_id'];
+		$carrier_services = CarrierService::create([
+			'carrierServiceId' => $carrierId, 
+			'shopId' => $shopId['id'], 
+			'callbackUrl' => $carrierCallbackUrl, 
+			'tipo' => $carrierTipo, 
+			'nombre' => $shopNombre, 
+			'state' => $state, 
 			'created_at' => now(), 
 			'updated_at' => now()
 		]);
-		$shopify->save();
+		$carrier_services->save();
 
-		if (str_contains($responseJSON, 'error')) {
+
+
+
+/* 
+		if (str_contains($response, 'error')) {
 			echo "La operación dio el siguiente error: " . $response;
 		} else {
 			echo "Webhook {$carrierId} creado con éxito";
-		}
+		} */
 
 	}
 
@@ -263,8 +332,8 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
     public function carrierShow($carrierId)
     {
-        $shopifyDatos = Shopify::latest()->first();
-        $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
+        $storeDatos = Store::latest()->first();
+        $api = new ShopifyAPI($storeDatos->shop, $storeDatos->access_token);
 
         $response = $api->callAPI('GET', "carrier_services/{$carrierId}");
         echo "<pre>";
@@ -279,7 +348,7 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
     public function carrierList()
     {
-        $shopifyDatos = Shopify::latest()->first();
+        $shopifyDatos = Store::latest()->first();
 
 		$api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
 
@@ -301,7 +370,7 @@ class ShopifyController extends Controller
 		$shopifyDatos = DB::table('Shopify')
 		->where('carrier->carrier_service->id', $carrierId)
 		->get();
-		$shopifyDatos = Shopify::latest()->first();
+		$shopifyDatos = Store::latest()->first();
         $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
         #$api = new ShopifyAPI("zeusintegra.mishopify.com", "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");
 
@@ -310,7 +379,7 @@ class ShopifyController extends Controller
 		->where('carrier->carrier_service->id', $carrierId)
 		->delete();
 
-		$shopifyDatos = Shopify::latest()->first();
+		$shopifyDatos = Store::latest()->first();
         $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
 
         $response = $api->callAPI('DELETE', "carrier_services/{$carrierId}");
@@ -331,7 +400,7 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
 	public function webhookCreate()
 	{
-		$shopifyDatos = Shopify::latest()->first();
+		$shopifyDatos = Store::latest()->first();
 		$shop = $shopifyDatos->shop;
 		$fapiusr = $shopifyDatos->fapiusr;
 		$fapiclave = $shopifyDatos->fapiclave;
@@ -355,7 +424,7 @@ class ShopifyController extends Controller
         // Procesa los datos del response encodificando el JSON
 		$responseJSON = json_encode($response, true);
 
-		$shopify = Shopify::create([
+		$shopify = Store::create([
 			'shop' => $shop, 
 			'fapiusr' => $fapiusr,
 			'fapiclave' => $fapiclave, 
@@ -380,13 +449,10 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
 	public function webhookCreateOrdersPaid()
 	{
-		$shopifyDatos = Shopify::latest()->first();
-		$shop = $shopifyDatos->shop;
-		$fapiusr = $shopifyDatos->fapiusr;
-		$fapiclave = $shopifyDatos->fapiclave;
-		$access_token = $shopifyDatos->access_token;
+		$storeDatos = Store::latest()->first();
 		$webhook_address_orders_paid = env('WEBHOOK_ADDRESS_ORDERS_PAID');
-        $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
+#        $api = new ShopifyAPI($storeDatos->shop, $storeDatos->access_token);
+        $api = new ShopifyAPI($storeDatos->shop, "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");
 
 		// Datos iniciales en forma de arreglo asociativo
 		$data = [
@@ -397,29 +463,22 @@ class ShopifyController extends Controller
 			]
 		];
         $response = $api->callAPI('POST', 'webhooks', $data);
-        echo "<pre>";
-        print_r($response);
-        echo "</pre>";
+        // Procesa los datos del response
+		$state = (isset($state)) ? $state : 'Activo';
+		$shopId = Store::latest()->first('id');
 		$webhookId = $response['webhook']['id'];
-        // Procesa los datos del response encodificando el JSON
-		$responseJSON = json_encode($response, true);
-
-		$shopify = Shopify::create([
-			'shop' => $shop, 
-			'fapiusr' => $fapiusr,
-			'fapiclave' => $fapiclave, 
-			'access_token' => $access_token,
-			'webhook' => $responseJSON,
+		$webhookUrl = $response['webhook']['address'];
+		$webhookTipo = $response['webhook']['topic'];
+		$webhook = Webhook::create([
+			'webhookId' => $webhookId, 
+			'shopId' => $shopId['id'], 
+			'url' => $webhookUrl, 
+			'tipo' => $webhookTipo, 
+			'state' => $state, 
 			'created_at' => now(), 
 			'updated_at' => now()
 		]);
-		$shopify->save();
-
-		if (str_contains($responseJSON, 'error')) {
-			echo "La operación dio el siguiente error: " . $response;
-		} else {
-			echo "Webhook {$webhookId} creado con éxito";
-		}
+		$webhook->save();
 	}
 
 	/*************************************************************************************************************
@@ -429,13 +488,10 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
 	public function webhookCreateOrdersCancelled()
 	{
-		$shopifyDatos = Shopify::latest()->first();
-		$shop = $shopifyDatos->shop;
-		$fapiusr = $shopifyDatos->fapiusr;
-		$fapiclave = $shopifyDatos->fapiclave;
-		$access_token = $shopifyDatos->access_token;
+		$storeDatos = Store::latest()->first();
 		$webhook_address_orders_cancelled = env('WEBHOOK_ADDRESS_ORDERS_CANCELLED');
-        $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
+#        $api = new ShopifyAPI($storeDatos->shop, $storeDatos->access_token);
+        $api = new ShopifyAPI($storeDatos->shop, "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");
 
 		// Datos iniciales en forma de arreglo asociativo
 		$data = [
@@ -446,29 +502,22 @@ class ShopifyController extends Controller
 			]
 		];
         $response = $api->callAPI('POST', 'webhooks', $data);
-        echo "<pre>";
-        print_r($response);
-        echo "</pre>";
+        // Procesa los datos del response
+		$state = (isset($state)) ? $state : 'Activo';
+		$shopId = Store::latest()->first('id');
 		$webhookId = $response['webhook']['id'];
-        // Procesa los datos del response encodificando el JSON
-		$responseJSON = json_encode($response, true);
-
-		$shopify = Shopify::create([
-			'shop' => $shop, 
-			'fapiusr' => $fapiusr,
-			'fapiclave' => $fapiclave, 
-			'access_token' => $access_token,
-			'webhook' => $responseJSON,
+		$webhookUrl = $response['webhook']['address'];
+		$webhookTipo = $response['webhook']['topic'];
+		$webhook = Webhook::create([
+			'webhookId' => $webhookId, 
+			'shopId' => $shopId['id'], 
+			'url' => $webhookUrl, 
+			'tipo' => $webhookTipo, 
+			'state' => $state, 
 			'created_at' => now(), 
 			'updated_at' => now()
 		]);
-		$shopify->save();
-
-		if (str_contains($responseJSON, 'error')) {
-			echo "La operación dio el siguiente error: " . $response;
-		} else {
-			echo "Webhook {$webhookId} creado con éxito";
-		}
+		$webhook->save();
 	}
 
      /*************************************************************************************************************
@@ -478,7 +527,7 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
     public function webhookShow($webhookId)
     {
-        $shopifyDatos = Shopify::latest()->first();
+        $shopifyDatos = Store::latest()->first();
         $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
 
         $response = $api->callAPI('GET', "webhooks/{$webhookId}");
@@ -494,7 +543,7 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
     public function webhookList()
     {
-        $shopifyDatos = Shopify::latest()->first();
+        $shopifyDatos = Store::latest()->first();
         $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
 
         $response = $api->callAPI('GET', "webhooks");
@@ -510,7 +559,7 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
     public function webhookDelete($webhookId)
     {
-        $shopifyDatos = Shopify::latest()->first();
+        $shopifyDatos = Store::latest()->first();
         $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
 
 		$shopifyDatos = DB::table('Shopify')
@@ -539,7 +588,7 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
 	public function edit($id)
 	{
-		$shopifyDatos = Shopify::findOrFail($id);
+		$shopifyDatos = Store::findOrFail($id);
 
 		return view('shopify.edit', ['shopifyDatos' => $shopifyDatos]);
 	}
@@ -551,7 +600,7 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
 	public function update($id, Request $request)
 	{
-		$shopifyDatos = Shopify::findOrFail($id);
+		$shopifyDatos = Store::findOrFail($id);
 
 		$request->validate([
 			'shop' => 'required',
@@ -575,7 +624,7 @@ class ShopifyController extends Controller
 	 *************************************************************************************************************/
 	public function destroy($id)
 	{
-		$shopifyDatos = Shopify::findOrFail($id);
+		$shopifyDatos = Store::findOrFail($id);
 
 		$shopifyDatos->delete();
 
