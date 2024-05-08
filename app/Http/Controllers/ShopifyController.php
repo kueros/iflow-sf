@@ -129,7 +129,7 @@ class ShopifyController extends Controller
 			$access_token = $result['access_token'];
 
 			// Show the access token (don't do this in production!)
-			$state = (isset($state)) ? $state : 'Activo';
+			$state = 'Activo';
 			// Configura la URL de la API de Shopify
 			$api_url = "https://$storeDatos->shop/admin/api/2024-01";
 
@@ -171,21 +171,24 @@ class ShopifyController extends Controller
 			} else {
 				echo "<p style='color: green;'>Webhook creado exitosamente<br/><br/>";
 			}
-			# Creo el registro y guardo los datos en la tabla Stores
-			$store = Store::create([
-				'token' => $access_token, 
-				'code' => $code, 
-				'cuit' => $storeDatos->cuit, 
-				'shop' => $storeDatos->shop, 
-				'fapiusr' => $storeDatos->fapiusr,
-				'fapiclave' => $storeDatos->fapiclave, 
-				'hmac' => $hmac, 
-				'host' => $host, 
-				'state' => $state, 
-				'created_at' => now(), 
-				'updated_at' => now()
-			]);
-			$store->save();
+			# Actualizo el registro de la tabla Stores
+			Store::updateOrInsert(
+				[
+					'shop' => $storeDatos->shop
+				],
+				[
+					'token' => $access_token, 
+					'code' => $code, 
+					'cuit' => $storeDatos->cuit, 
+					'fapiusr' => $storeDatos->fapiusr,
+					'fapiclave' => $storeDatos->fapiclave, 
+					'hmac' => $hmac, 
+					'host' => $host, 
+					'state' => $state, 
+					'created_at' => now(), 
+					'updated_at' => now()
+				]);
+	
 
 			# Creo el registro y guardo los datos en la tabla Webhooks
 			$shopId = Store::latest()->first('id');
@@ -203,24 +206,24 @@ class ShopifyController extends Controller
 			]);
 			$webhook->save();
 
-			# Creo el registro y guardo los datos en la tabla installLogs
-			$installLog = InstallLog::create([
-				'shopId' => $shopId['id'], 
-				'token' => $access_token, 
-				'code' => $code, 
-				'cuit' => $storeDatos->cuit, 
-				'shop' => $storeDatos->shop, 
-				'fapiusr' => $storeDatos->fapiusr,
-				'fapiclave' => $storeDatos->fapiclave, 
-				'hmac' => $hmac, 
-				'host' => $host, 
-				'state' => $state, 
-				'created_at' => now(), 
-				'updated_at' => now()
-			]);
-			$installLog->save();
-
-			
+			InstallLog::updateOrInsert(
+				[
+					'shop' => $storeDatos->shop
+				],
+				[
+					'shopId' => $shopId['id'], 
+					'token' => $access_token, 
+					'code' => $code, 
+					'cuit' => $storeDatos->cuit, 
+					'shop' => $storeDatos->shop, 
+					'fapiusr' => $storeDatos->fapiusr,
+					'fapiclave' => $storeDatos->fapiclave, 
+					'hmac' => $hmac, 
+					'host' => $host, 
+					'state' => $state, 
+					'created_at' => now(), 
+					'updated_at' => now()
+				]);
 
 			// Procesar los resultados
 			$result = Store::all(); //->each(function($shopifyDatos)
@@ -232,9 +235,11 @@ class ShopifyController extends Controller
 			});
 		}
 
-		$crearShipingCarrier = $this->carrierCreate();
-		$crearWebhookOrdersPaid = $this->webhookCreateOrdersPaid();
-		$crearWebhookOrdersCancelled = $this->webhookCreateOrdersCancelled();
+		echo "access_token: " . $access_token . '<br/>'; 
+
+		$crearShipingCarrier = $this->carrierCreate($access_token);
+		$crearWebhookOrdersPaid = $this->webhookCreateOrdersPaid($access_token);
+		$crearWebhookOrdersCancelled = $this->webhookCreateOrdersCancelled($access_token);
 		echo "<pre>";
 		print_r($crearShipingCarrier);
 		print_r($crearWebhookOrdersPaid);
@@ -253,11 +258,11 @@ class ShopifyController extends Controller
 	 * @return \Illuminate\Http\Response
 	 * 
 	 *************************************************************************************************************/
-	public function carrierCreate()
+	public function carrierCreate($access_token)
 	{
 		$storeDatos = Store::latest()->first();
 		$shop = $storeDatos->shop;
-		$api = new ShopifyAPI($storeDatos->shop, $storeDatos->access_token);
+		$api = new ShopifyAPI($storeDatos->shop, $access_token);
 		$callback_url = env('CALLBACK_URL_CARRIER',);
 		
 		$data = [
@@ -275,7 +280,7 @@ class ShopifyController extends Controller
         print_r($response);
         echo "</pre>";
 
-		$state = (isset($state)) ? $state : 'Activo';
+		$state = 'Activo';
 		# Creo el registro y guardo los datos en la tabla Webhooks
 		$shopId = Store::latest()->first('id');
 		$shop = Store::latest()->first('shop');
@@ -419,12 +424,12 @@ class ShopifyController extends Controller
 	 *
 	 * @return \Illuminate\Http\Response
 	 *************************************************************************************************************/
-	public function webhookCreateOrdersPaid()
+	public function webhookCreateOrdersPaid($access_token)
 	{
 		$storeDatos = Store::latest()->first();
 		$webhook_address_orders_paid = env('WEBHOOK_ADDRESS_ORDERS_PAID');
 #        $api = new ShopifyAPI($storeDatos->shop, $storeDatos->access_token);
-        $api = new ShopifyAPI($storeDatos->shop, "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");
+        $api = new ShopifyAPI($storeDatos->shop, $access_token);
 
 		// Datos iniciales en forma de arreglo asociativo
 		$data = [
@@ -436,7 +441,7 @@ class ShopifyController extends Controller
 		];
         $response = $api->callAPI('POST', 'webhooks', $data);
         // Procesa los datos del response
-		$state = (isset($state)) ? $state : 'Activo';
+		$state = 'Activo';
 		$shopId = Store::latest()->first('id');
 		$webhookId = $response['webhook']['id'];
 		$webhookUrl = $response['webhook']['address'];
@@ -458,12 +463,12 @@ class ShopifyController extends Controller
 	 *
 	 * @return \Illuminate\Http\Response
 	 *************************************************************************************************************/
-	public function webhookCreateOrdersCancelled()
+	public function webhookCreateOrdersCancelled($access_token)
 	{
 		$storeDatos = Store::latest()->first();
 		$webhook_address_orders_cancelled = env('WEBHOOK_ADDRESS_ORDERS_CANCELLED');
 #        $api = new ShopifyAPI($storeDatos->shop, $storeDatos->access_token);
-        $api = new ShopifyAPI($storeDatos->shop, "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");
+        $api = new ShopifyAPI($storeDatos->shop, $access_token);
 
 		// Datos iniciales en forma de arreglo asociativo
 		$data = [
@@ -475,7 +480,7 @@ class ShopifyController extends Controller
 		];
         $response = $api->callAPI('POST', 'webhooks', $data);
         // Procesa los datos del response
-		$state = (isset($state)) ? $state : 'Activo';
+		$state = 'Activo';
 		$shopId = Store::latest()->first('id');
 		$webhookId = $response['webhook']['id'];
 		$webhookUrl = $response['webhook']['address'];
