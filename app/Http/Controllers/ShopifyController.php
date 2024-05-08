@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Redirect;
-#use Shopify\Rest\Admin2024_04\CarrierService;
 use Shopify\Utils;
 
 class ShopifyController extends Controller
@@ -51,13 +50,11 @@ class ShopifyController extends Controller
 			'fapiclave' => 'required',
 			'cuit' => 'required',
 		]);
-#dd($request);
 		Store::updateOrInsert(
 			['shop' => $request->input('shop')],
 			['fapiusr' => $request->input('fapiusr'), 'fapiclave' => $request->input('fapiclave'),'cuit' => $request->input('cuit'), 'created_at' => now(), 'updated_at' => now()]
 		);
 		$storeShopId = Store::latest()->first('id');
-		##dd($storeShopId);
 		InstallLog::updateOrInsert(
 			['shopId' => $storeShopId->id, 'shop' => $request->input('shop')],
 			['fapiusr' => $request->input('fapiusr'), 'fapiclave' => $request->input('fapiclave'), 'created_at' => now(), 'updated_at' => now()]
@@ -129,7 +126,6 @@ class ShopifyController extends Controller
 
 			// Store the access token
 			$result = json_decode($result, true);
-#dd($result);
 			$access_token = $result['access_token'];
 
 			// Show the access token (don't do this in production!)
@@ -152,11 +148,6 @@ class ShopifyController extends Controller
 				CURLOPT_CUSTOMREQUEST => 'POST',
 				CURLOPT_POSTFIELDS => '{
 					"webhook":
-
-
-
-
-
 						{"address":"pubsub://projectName01:topicName",
 							"topic":"orders/create",
 							"format":"json"}
@@ -172,8 +163,6 @@ class ShopifyController extends Controller
 			));
 			$response = curl_exec($curl);
 			curl_close($curl);
-			echo 'otra prueba: ';
-#dd($response);
 
 			// Verifica el resultado
 			if ($result === FALSE) {
@@ -267,13 +256,8 @@ class ShopifyController extends Controller
 	public function carrierCreate()
 	{
 		$storeDatos = Store::latest()->first();
-		#dd($storeDatos);
 		$shop = $storeDatos->shop;
-		$fapiusr = $storeDatos->fapiusr;
-		$fapiclave = $storeDatos->fapiclave;
-		$access_token = $storeDatos->access_token;
-#		$api = new ShopifyAPI($storeDatos->shop, $storeDatos->access_token);
-		$api = new ShopifyAPI($storeDatos->shop, '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');
+		$api = new ShopifyAPI($storeDatos->shop, $storeDatos->access_token);
 		$callback_url = env('CALLBACK_URL_CARRIER',);
 		
 		$data = [
@@ -290,14 +274,13 @@ class ShopifyController extends Controller
         echo "<pre>";
         print_r($response);
         echo "</pre>";
-		#dd($response);
 
 		$state = (isset($state)) ? $state : 'Activo';
 		# Creo el registro y guardo los datos en la tabla Webhooks
 		$shopId = Store::latest()->first('id');
 		$shop = Store::latest()->first('shop');
 		$shopNombre = $shop['shop'];
-#dd($shopNombre);
+
 		$carrierId = $response['carrier_service']['id'];
 		$carrierCallbackUrl = $response['carrier_service']['callback_url'];
 		$carrierTipo = $response['carrier_service']['admin_graphql_api_id'];
@@ -312,17 +295,6 @@ class ShopifyController extends Controller
 			'updated_at' => now()
 		]);
 		$carrier_services->save();
-
-
-
-
-/* 
-		if (str_contains($response, 'error')) {
-			echo "La operación dio el siguiente error: " . $response;
-		} else {
-			echo "Webhook {$carrierId} creado con éxito";
-		} */
-
 	}
 
     /*************************************************************************************************************
