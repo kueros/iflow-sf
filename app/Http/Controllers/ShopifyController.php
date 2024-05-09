@@ -54,7 +54,7 @@ class ShopifyController extends Controller
 			['shop' => $request->input('shop')],
 			['fapiusr' => $request->input('fapiusr'), 'fapiclave' => $request->input('fapiclave'),'cuit' => $request->input('cuit'), 'created_at' => now(), 'updated_at' => now()]
 		);
-		$storeShopId = Store::latest()->first('id');
+		$storeShopId = Store::latest()->first();
 		InstallLog::updateOrInsert(
 			['shopId' => $storeShopId->id, 'shop' => $request->input('shop')],
 			['fapiusr' => $request->input('fapiusr'), 'fapiclave' => $request->input('fapiclave'), 'created_at' => now(), 'updated_at' => now()]
@@ -127,7 +127,6 @@ class ShopifyController extends Controller
 			// Store the access token
 			$result = json_decode($result, true);
 			$access_token = $result['access_token'];
-
 			// Show the access token (don't do this in production!)
 			$state = 'Activo';
 			// Configura la URL de la API de Shopify
@@ -192,6 +191,7 @@ class ShopifyController extends Controller
 
 			# Creo el registro y guardo los datos en la tabla Webhooks
 			$shopId = Store::latest()->first('id');
+			#dd($response);
 			$responseArray = json_decode($response, true);
 			#dd($responseArray['webhook']['id']);
 			$webhookId = $responseArray['webhook']['id'];
