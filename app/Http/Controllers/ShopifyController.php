@@ -190,14 +190,14 @@ class ShopifyController extends Controller
 	
 
 			# Creo el registro y guardo los datos en la tabla Webhooks
-			$shopId = Store::latest()->first('id');
+			$shopId = Store::latest()->first();
 			#dd($response);
 			$responseArray = json_decode($response, true);
 			#dd($responseArray['webhook']['id']);
 			$webhookId = $responseArray['webhook']['id'];
 			$webhook = Webhook::create([
 				'webhookId' => $webhookId, 
-				'shopId' => $shopId['id'], 
+				'shopId' => $shopId->id, 
 				'url' => $responseArray['webhook']['address'], 
 				'tipo' => $responseArray['webhook']['topic'], 
 				'state' => $state, 
