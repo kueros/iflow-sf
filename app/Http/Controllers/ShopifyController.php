@@ -211,7 +211,7 @@ class ShopifyController extends Controller
 					'shop' => $storeDatos->shop
 				],
 				[
-					'shopId' => $shopId['id'], 
+					'shopId' => $shopId->id, 
 					'token' => $access_token, 
 					'code' => $code, 
 					'cuit' => $storeDatos->cuit, 
@@ -282,7 +282,7 @@ class ShopifyController extends Controller
 
 		$state = 'Activo';
 		# Creo el registro y guardo los datos en la tabla Webhooks
-		$shopId = Store::latest()->first('id');
+		$shopId = Store::latest()->first();
 		$shop = Store::latest()->first('shop');
 		$shopNombre = $shop['shop'];
 
@@ -291,7 +291,7 @@ class ShopifyController extends Controller
 		$carrierTipo = $response['carrier_service']['admin_graphql_api_id'];
 		$carrier_services = CarrierService::create([
 			'carrierServiceId' => $carrierId, 
-			'shopId' => $shopId['id'], 
+			'shopId' => $shopId->id, 
 			'callbackUrl' => $carrierCallbackUrl, 
 			'tipo' => $carrierTipo, 
 			'nombre' => $shopNombre, 
@@ -442,13 +442,13 @@ class ShopifyController extends Controller
         $response = $api->callAPI('POST', 'webhooks', $data);
         // Procesa los datos del response
 		$state = 'Activo';
-		$shopId = Store::latest()->first('id');
+		$shopId = Store::latest()->first();
 		$webhookId = $response['webhook']['id'];
 		$webhookUrl = $response['webhook']['address'];
 		$webhookTipo = $response['webhook']['topic'];
 		$webhook = Webhook::create([
 			'webhookId' => $webhookId, 
-			'shopId' => $shopId['id'], 
+			'shopId' => $shopId->id, 
 			'url' => $webhookUrl, 
 			'tipo' => $webhookTipo, 
 			'state' => $state, 
@@ -481,13 +481,13 @@ class ShopifyController extends Controller
         $response = $api->callAPI('POST', 'webhooks', $data);
         // Procesa los datos del response
 		$state = 'Activo';
-		$shopId = Store::latest()->first('id');
+		$shopId = Store::latest()->first();
 		$webhookId = $response['webhook']['id'];
 		$webhookUrl = $response['webhook']['address'];
 		$webhookTipo = $response['webhook']['topic'];
 		$webhook = Webhook::create([
 			'webhookId' => $webhookId, 
-			'shopId' => $shopId['id'], 
+			'shopId' => $shopId->id, 
 			'url' => $webhookUrl, 
 			'tipo' => $webhookTipo, 
 			'state' => $state, 
