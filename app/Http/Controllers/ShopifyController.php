@@ -32,7 +32,6 @@ class ShopifyController extends Controller
 		$storeDatos = Store::query()
 			->orderByDesc('id')
 			->get();
-
 		return view('shopify.index')->with('shopifyDatos', $storeDatos);
 	}
 
@@ -92,6 +91,10 @@ class ShopifyController extends Controller
 		#Cargo los datos desde el .env
 		$api_key = env('CLI_ID');
 		$shared_secret = env('CLI_PASS');
+		$webhook_address_orders_paid = env('WEBHOOK_ADDRESS_ORDERS_PAID');
+
+
+		
 		#Cargo los datos desde el formulario
 		$params = $_GET;
 		$hmac = isset($_GET['hmac']) ? $_GET['hmac'] : '';
@@ -147,7 +150,7 @@ class ShopifyController extends Controller
 				CURLOPT_CUSTOMREQUEST => 'POST',
 				CURLOPT_POSTFIELDS => '{
 					"webhook":
-						{"address":"pubsub://projectName01:topicName",
+						{"address":'.$webhook_address_orders_paid.',
 							"topic":"orders/create",
 							"format":"json"}
 						}',
@@ -211,7 +214,7 @@ class ShopifyController extends Controller
 					'shop' => $storeDatos->shop
 				],
 				[
-					'shopId' => $shopId['id'], 
+					'shopId' => $shopId->id, 
 					'token' => $access_token, 
 					'code' => $code, 
 					'cuit' => $storeDatos->cuit, 
@@ -285,7 +288,7 @@ class ShopifyController extends Controller
 
 		$state = 'Activo';
 		# Creo el registro y guardo los datos en la tabla Webhooks
-		$shopId = Store::latest()->first('id');
+		$shopId = Store::latest()->first();
 		$shop = Store::latest()->first('shop');
 		$shopNombre = $shop['shop'];
 
@@ -294,7 +297,7 @@ class ShopifyController extends Controller
 		$carrierTipo = $response['carrier_service']['admin_graphql_api_id'];
 		$carrier_services = CarrierService::create([
 			'carrierServiceId' => $carrierId, 
-			'shopId' => $shopId['id'], 
+			'shopId' => $shopId->id, 
 			'callbackUrl' => $carrierCallbackUrl, 
 			'tipo' => $carrierTipo, 
 			'nombre' => $shopNombre, 
@@ -445,13 +448,13 @@ class ShopifyController extends Controller
         $response = $api->callAPI('POST', 'webhooks', $data);
         // Procesa los datos del response
 		$state = 'Activo';
-		$shopId = Store::latest()->first('id');
+		$shopId = Store::latest()->first();
 		$webhookId = $response['webhook']['id'];
 		$webhookUrl = $response['webhook']['address'];
 		$webhookTipo = $response['webhook']['topic'];
 		$webhook = Webhook::create([
 			'webhookId' => $webhookId, 
-			'shopId' => $shopId['id'], 
+			'shopId' => $shopId->id, 
 			'url' => $webhookUrl, 
 			'tipo' => $webhookTipo, 
 			'state' => $state, 
@@ -484,13 +487,13 @@ class ShopifyController extends Controller
         $response = $api->callAPI('POST', 'webhooks', $data);
         // Procesa los datos del response
 		$state = 'Activo';
-		$shopId = Store::latest()->first('id');
+		$shopId = Store::latest()->first();
 		$webhookId = $response['webhook']['id'];
 		$webhookUrl = $response['webhook']['address'];
 		$webhookTipo = $response['webhook']['topic'];
 		$webhook = Webhook::create([
 			'webhookId' => $webhookId, 
-			'shopId' => $shopId['id'], 
+			'shopId' => $shopId->id, 
 			'url' => $webhookUrl, 
 			'tipo' => $webhookTipo, 
 			'state' => $state, 
