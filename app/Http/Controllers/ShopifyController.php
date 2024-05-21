@@ -32,7 +32,6 @@ class ShopifyController extends Controller
 		$storeDatos = Store::query()
 			->orderByDesc('id')
 			->get();
-
 		return view('shopify.index')->with('shopifyDatos', $storeDatos);
 	}
 
