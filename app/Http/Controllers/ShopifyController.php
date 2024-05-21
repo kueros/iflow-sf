@@ -229,6 +229,7 @@ class ShopifyController extends Controller
 			$result = Store::all(); //->each(function($shopifyDatos)
 			#dd($result);
 			$result->each(function ($store) {
+				//$psd = $store->shop;
 				echo "Tienda: " . $store->shop . '<br/>';
 				echo "TOKEN: " . $store->access_token . '<br/>';
 				echo "Code: " . $store->code . '<br/>';
@@ -246,7 +247,9 @@ class ShopifyController extends Controller
 		print_r($crearWebhookOrdersCancelled);
 		echo "</pre>";
 
-		return;
+		//return;
+		return redirect()->to('https://track.iflow21.com/');
+		
 	}
 
 	/*************************************************************************************************************
