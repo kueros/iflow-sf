@@ -91,6 +91,10 @@ class ShopifyController extends Controller
 		#Cargo los datos desde el .env
 		$api_key = env('CLI_ID');
 		$shared_secret = env('CLI_PASS');
+		$webhook_address_orders_paid = env('WEBHOOK_ADDRESS_ORDERS_PAID');
+
+
+		
 		#Cargo los datos desde el formulario
 		$params = $_GET;
 		$hmac = isset($_GET['hmac']) ? $_GET['hmac'] : '';
@@ -146,7 +150,7 @@ class ShopifyController extends Controller
 				CURLOPT_CUSTOMREQUEST => 'POST',
 				CURLOPT_POSTFIELDS => '{
 					"webhook":
-						{"address":"pubsub://projectName01:topicName",
+						{"address":'.$webhook_address_orders_paid.',
 							"topic":"orders/create",
 							"format":"json"}
 						}',
