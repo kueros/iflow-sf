@@ -1,12 +1,12 @@
 <x-layout>
-        <x-slot:title>Listado de tiendas</x-slot:title>
+        <x-slot:title>Listado de tiendas2</x-slot:title>
 
         <main class="content">
             <div class="cards">
                 @forelse($shopifyDatos as $shopifyDato)
                     <div class="card card-small">
                         <div class="card-body">
-                            <h4>{{ $shopifyDato->shop }}</h4>
+                            <h4>{{ $shopifyDato->shop }}sssssss</h4>
                             <p>
                                 {{ $shopifyDato->fapiusr }}
                             </p>

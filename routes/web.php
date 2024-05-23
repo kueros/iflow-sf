@@ -20,6 +20,7 @@ use Shopify\Clients\Rest;
 |
 */
 
+Route::get('/', [ShopifyController::class, 'index'])->name('shopify.index');
 Route::get('/shopify', [ShopifyController::class, 'index'])->name('shopify.index');
 Route::get('/install', [ShopifyController::class, 'install'])->name('shopify.install');
 Route::get('/segundowebhook', [ShopifyController::class, 'segundowebhook'])->name('shopify.segundowebhook');

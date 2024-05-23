@@ -1,5 +1,5 @@
 <x-layout>
-        <x-slot:title>Editar tienda</x-slot:title>
+        <x-slot:title>Editar tienda3</x-slot:title>
 
         <main class="content">
             <div class="cards">
