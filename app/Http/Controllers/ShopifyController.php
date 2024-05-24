@@ -88,6 +88,9 @@ class ShopifyController extends Controller
 	{
 		#Me traigo la última tienda creada desde la tabla
 		$storeDatos = Store::latest()->first();
+
+		
+
 		#Cargo los datos desde el .env
 		$api_key = env('CLI_ID');
 		$shared_secret = env('CLI_PASS');
@@ -115,6 +118,8 @@ class ShopifyController extends Controller
 				"code" => $params['code'] // Grab the access key from the URL
 			);
 			$shop = $params['shop'];
+			
+
 			// Generate access token URL
 			$access_token_url = "https://" . $shop . "/admin/oauth/access_token";
 
@@ -130,14 +135,21 @@ class ShopifyController extends Controller
 			// Store the access token
 			$result = json_decode($result, true);
 			$access_token = $result['access_token'];
+			//dd($access_token);
+			
 			// Show the access token (don't do this in production!)
 			$state = 'Activo';
 			// Configura la URL de la API de Shopify
-			$api_url = "https://$storeDatos->shop/admin/api/2024-01";
+
+			$api_url = 'https://'.$storeDatos->shop .'/admin/api/2024-04/webhooks.json';
+
+			// var_dump ($api_url);exit;
 
 			// Realiza la solicitud para crear el webhook
-			$curl_url = $api_url . '/webhooks.json';
+			//$curl_url = $api_url . '/webhooks.json';
+			$curl_url = $api_url ; 
 
+				
 			$curl = curl_init();
 			curl_setopt_array($curl, array(
 				CURLOPT_RETURNTRANSFER => true,
@@ -150,7 +162,7 @@ class ShopifyController extends Controller
 				CURLOPT_CUSTOMREQUEST => 'POST',
 				CURLOPT_POSTFIELDS => '{
 					"webhook":
-						{"address":'.$webhook_address_orders_create.',
+						{"address":"'.$webhook_address_orders_create .'",
 							"topic":"orders/create",
 							"format":"json"}
 						}',
@@ -163,7 +175,16 @@ class ShopifyController extends Controller
 					'Cookie: request_method=POST'
 				),
 			));
+
+			
+
 			$response = curl_exec($curl);
+			
+			//var_dump($response);
+
+			//var_dump('psd'. json_decode($response));
+			//exit;
+			
 			curl_close($curl);
 
 			// Verifica el resultado
@@ -194,9 +215,16 @@ class ShopifyController extends Controller
 
 			# Creo el registro y guardo los datos en la tabla Webhooks
 			$shopId = Store::latest()->first();
-			#dd($response);
+			
+			
+			$responseArray = $response;
+
 			$responseArray = json_decode($response, true);
+			
+			
+
 			#dd($responseArray['webhook']['id']);
+
 			$webhookId = $responseArray['webhook']['id'];
 			$webhook = Webhook::create([
 				'webhookId' => $webhookId, 
@@ -446,7 +474,9 @@ class ShopifyController extends Controller
 			]
 		];
         $response = $api->callAPI('POST', 'webhooks', $data);
-        // Procesa los datos del response
+        
+		#dd($response);  psd subir 
+		// Procesa los datos del response
 		$state = 'Activo';
 		$shopId = Store::latest()->first();
 		$webhookId = $response['webhook']['id'];
