@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('stores', function (Blueprint $table) {
             $table->id();
+            $table->string('cli_id')->nullable();
             $table->string('token')->nullable();
             $table->string('code')->nullable();;
             $table->string('cuit')->nullable();
@@ -22,7 +23,6 @@ return new class extends Migration
             $table->string('hmac')->nullable();
             $table->string('host')->nullable();
             $table->string('state')->default('activo');
-            $table->softDeletes();
             $table->timestamps();
         });
     }
