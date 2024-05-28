@@ -70,9 +70,10 @@ class ShopifyController extends Controller
 	{
 		/* DATOS DEL ENV */
 		#Cargo las variables desde la tabla de configs
-        $configs = Config::get();
-		$api_key = $configs->api_key;//config('sfenv.api_key');
-		$redirect_url =  $configs->redirect_url;
+        $configs = Config::get()->first();
+        #dd($configs);
+		$api_key = $configs->cli_id;//config('sfenv.api_key');
+		$redirect_url =  $configs->re_dir_url;
 		$scope =  $configs->scope;
 
 		#Chupo los storeDatos del último registro de la tabla
@@ -90,8 +91,8 @@ class ShopifyController extends Controller
 	{
 		#Me traigo la última tienda creada desde la tabla
 		$storeDatos = Store::latest()->first();
-		#Cargo las variables desde la tabla de configs
-        $configs = Config::get();
+        #Cargo las variables desde la tabla de configs
+        $configs = Config::get()->first();
         $api_key = $configs->cli_id;
         $shared_secret = $configs->cli_pass;
         $api_key = $configs->cli_id;
@@ -282,6 +283,8 @@ class ShopifyController extends Controller
 		
 	}
 
+
+
 	/*************************************************************************************************************
 	 * ACA COMIENZA LA LOGICA DE LOS CARRIERS
 	/*************************************************************************************************************
@@ -294,7 +297,7 @@ class ShopifyController extends Controller
 	public function carrierCreate($access_token)
 	{
 		$storeDatos = Store::latest()->first();
-        $configs = Config::all();
+        $configs = Config::get()->first();
 		$shop = $storeDatos->shop;
 		$api = new ShopifyAPI($storeDatos->shop, $access_token);
 		#$callback_url = env('CALLBACK_URL_CARRIER',);
@@ -352,8 +355,8 @@ class ShopifyController extends Controller
 		$fapiusr = $shopifyDatos->fapiusr;
 		$fapiclave = $shopifyDatos->fapiclave;
 		$access_token = $shopifyDatos->access_token;
-		#$webhook_address_orders_create = env('WEBHOOK_ADDRESS_ORDERS_CREATE');
-        $configs = Config::all();
+        #$webhook_address_orders_create = env('WEBHOOK_ADDRESS_ORDERS_CREATE');
+        $configs = Config::get()->first();
         $webhook_address_orders_create = $configs->webhook_address_orders_create;
         $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
 
@@ -399,8 +402,8 @@ class ShopifyController extends Controller
 	public function webhookCreateOrdersPaid($access_token)
 	{
 		$storeDatos = Store::latest()->first();
-		#$webhook_address_orders_paid = env('WEBHOOK_ADDRESS_ORDERS_PAID');
-        $configs = Config::all();
+        #$webhook_address_orders_paid = env('WEBHOOK_ADDRESS_ORDERS_PAID');
+        $configs = Config::get()->first();
         $webhook_address_orders_paid = $configs->webhook_address_orders_paid;
         $api = new ShopifyAPI($storeDatos->shop, $access_token);
 
@@ -441,8 +444,8 @@ class ShopifyController extends Controller
 	public function webhookCreateOrdersCancelled($access_token)
 	{
 		$storeDatos = Store::latest()->first();
-		#$webhook_address_orders_cancelled = env('WEBHOOK_ADDRESS_ORDERS_CANCELLED');
-        $configs = Config::all();
+        #$webhook_address_orders_cancelled = env('WEBHOOK_ADDRESS_ORDERS_CANCELLED');
+        $configs = Config::get()->first();
         $webhook_address_orders_cancelled = $configs->webhook_address_orders_cancelled;
         $api = new ShopifyAPI($storeDatos->shop, $access_token);
 
