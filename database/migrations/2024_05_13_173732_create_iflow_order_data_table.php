@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('iflow_order_data', function (Blueprint $table) {
             $table->id();
+            $table->string('cli_id')->nullable();
             $table->string('order_id', 50);
             $table->string('shopId');
             $table->string('tracking_id', 50);
