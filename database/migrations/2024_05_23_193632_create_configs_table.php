@@ -23,9 +23,6 @@ return new class extends Migration
             $table->string('webhook_address_orders_create');
             $table->string('webhook_address_orders_paid');
             $table->string('webhook_address_orders_cancelled');
-            $table->string('api_u');
-            $table->string('api_p');
-            $table->string('shop_test');
             $table->timestamps();
         });
     }

@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('iflow_order_data', function (Blueprint $table) {
             $table->id();
-            $table->string('order_id',50);
-            $table->string('tracking_id',50);
-            $table->string('shipment_id',50);
-            $table->string('print_url',200);
-            $table->string('code',4);
+            $table->string('order_id', 50);
+            $table->string('shopId');
+            $table->string('tracking_id', 50);
+            $table->string('shipment_id', 50);
+            $table->string('print_url', 200);
+            $table->string('code', 4);
             $table->timestamps();
         });
     }
