@@ -19,6 +19,7 @@ use Shopify\Clients\Rest;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+Route::get('/', [ShopifyController::class, 'create'])->name('shopify.create');
 
 Route::get('/shopify', [ShopifyController::class, 'index'])->name('shopify.index');
 Route::get('/install', [ShopifyController::class, 'install'])->name('shopify.install');
@@ -37,7 +38,6 @@ Route::get('/webhookCreateOrdersPaid', [ShopifyController::class, 'webhookCreate
 Route::get('/webhookCreateOrdersCancelled', [ShopifyController::class, 'webhookCreateOrdersCancelled'])->name('ShopifyController.webhookCreateOrdersCancelled');
 
 Route::delete('/shopify/{id}', [ShopifyController::class, 'destroy'])->name('shopify.destroy');
-Route::get('/shopify/crear', [ShopifyController::class, 'create'])->name('shopify.create');
 Route::post('/shopify', [ShopifyController::class, 'store'])->name('shopify.store');
 Route::get('/shopify/{id}/editar', [ShopifyController::class, 'edit'])->name('shopify.edit');
 Route::put('/shopify/{id}', [ShopifyController::class, 'update'])->name('shopify.update');

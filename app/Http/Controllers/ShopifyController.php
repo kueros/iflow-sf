@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Store;
 use App\Models\InstallLog;
 use App\Models\Webhook;
+use App\Models\Config;
 use App\Models\CarrierService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -68,10 +69,11 @@ class ShopifyController extends Controller
 	public function install()
 	{
 		/* DATOS DEL ENV */
-		#Cargo shopifyDatos del env en variables
-		$api_key = config('sfenv.api_key');
-		$redirect_url =  config('sfenv.redirect_url');
-		$scope =  config('sfenv.scope');
+		#Cargo las variables desde la tabla de configs
+        $configs = Config::get();
+		$api_key = $configs->api_key;//config('sfenv.api_key');
+		$redirect_url =  $configs->redirect_url;
+		$scope =  $configs->scope;
 
 		#Chupo los storeDatos del último registro de la tabla
 		$storeDatos = Store::latest()->first();
@@ -88,15 +90,12 @@ class ShopifyController extends Controller
 	{
 		#Me traigo la última tienda creada desde la tabla
 		$storeDatos = Store::latest()->first();
-
-		
-
-		#Cargo los datos desde el .env
-		$api_key = env('CLI_ID');
-		$shared_secret = env('CLI_PASS');
-		$webhook_address_orders_create = env('WEBHOOK_ADDRESS_ORDERS_CREATE');
-
-
+		#Cargo las variables desde la tabla de configs
+        $configs = Config::get();
+        $api_key = $configs->cli_id;
+        $shared_secret = $configs->cli_pass;
+        $api_key = $configs->cli_id;
+        $webhook_address_orders_create = $configs->webhook_address_orders_create;
 		
 		#Cargo los datos desde el formulario
 		$params = $_GET;
@@ -295,9 +294,11 @@ class ShopifyController extends Controller
 	public function carrierCreate($access_token)
 	{
 		$storeDatos = Store::latest()->first();
+        $configs = Config::all();
 		$shop = $storeDatos->shop;
 		$api = new ShopifyAPI($storeDatos->shop, $access_token);
-		$callback_url = env('CALLBACK_URL_CARRIER',);
+		#$callback_url = env('CALLBACK_URL_CARRIER',);
+        $callback_url = $configs->callback_url_carrier;
 		
 		$data = [
 			"carrier_service" => [
@@ -336,71 +337,6 @@ class ShopifyController extends Controller
 		$carrier_services->save();
 	}
 
-    /*************************************************************************************************************
-	 * CARRIER SHOW
-	 *
-	 * @return \Illuminate\Http\Response
-	 *************************************************************************************************************/
-    public function carrierShow($carrierId)
-    {
-        $storeDatos = Store::latest()->first();
-        $api = new ShopifyAPI($storeDatos->shop, $storeDatos->access_token);
-
-        $response = $api->callAPI('GET', "carrier_services/{$carrierId}");
-        echo "<pre>";
-        print_r($response);
-        echo "</pre>";
-    }
-
-	/*************************************************************************************************************
-	 * CARRIER LIST
-	 *
-	 * @return \Illuminate\Http\Response
-	 *************************************************************************************************************/
-    public function carrierList()
-    {
-        $shopifyDatos = Store::latest()->first();
-
-		$api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
-
-        $response = $api->callAPI('GET', "carrier_services");
-        echo "<pre>";
-        print_r($response);
-        echo "</pre>";
-    }
-
-	/*************************************************************************************************************
-	 * CARRIER DELETE
-	 *
-	 * @return \Illuminate\Http\Response
-     * 
-     * 
-	 *************************************************************************************************************/
-    public function carrierDelete($carrierId)
-    {
-		$shopifyDatos = DB::table('Shopify')
-		->where('carrier->carrier_service->id', $carrierId)
-		->get();
-		$shopifyDatos = Store::latest()->first();
-        $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
-        #$api = new ShopifyAPI("zeusintegra.mishopify.com", "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");
-
-        $response = $api->callAPI('DELETE', "carrier_services/{$carrierId}");
-		$shopifyDatos = DB::table('Shopify')
-		->where('carrier->carrier_service->id', $carrierId)
-		->delete();
-
-		$shopifyDatos = Store::latest()->first();
-        $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
-
-        $response = $api->callAPI('DELETE', "carrier_services/{$carrierId}");
-        if (array_key_exists('error', $response)) {
-            echo "Error: " . $response['error'];
-        } else {
-            echo "Carrier $carrierId borrado con éxito";
-        }
-    }
-
 	/*************************************************************************************************************
      * ACA COMIENZA LA LOGICA DE LOS WEBHOOKS
 	/*************************************************************************************************************
@@ -416,7 +352,9 @@ class ShopifyController extends Controller
 		$fapiusr = $shopifyDatos->fapiusr;
 		$fapiclave = $shopifyDatos->fapiclave;
 		$access_token = $shopifyDatos->access_token;
-		$webhook_address_orders_create = env('WEBHOOK_ADDRESS_ORDERS_CREATE');
+		#$webhook_address_orders_create = env('WEBHOOK_ADDRESS_ORDERS_CREATE');
+        $configs = Config::all();
+        $webhook_address_orders_create = $configs->webhook_address_orders_create;
         $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
 
 		// Datos iniciales en forma de arreglo asociativo
@@ -461,8 +399,9 @@ class ShopifyController extends Controller
 	public function webhookCreateOrdersPaid($access_token)
 	{
 		$storeDatos = Store::latest()->first();
-		$webhook_address_orders_paid = env('WEBHOOK_ADDRESS_ORDERS_PAID');
-#        $api = new ShopifyAPI($storeDatos->shop, $storeDatos->access_token);
+		#$webhook_address_orders_paid = env('WEBHOOK_ADDRESS_ORDERS_PAID');
+        $configs = Config::all();
+        $webhook_address_orders_paid = $configs->webhook_address_orders_paid;
         $api = new ShopifyAPI($storeDatos->shop, $access_token);
 
 		// Datos iniciales en forma de arreglo asociativo
@@ -502,8 +441,9 @@ class ShopifyController extends Controller
 	public function webhookCreateOrdersCancelled($access_token)
 	{
 		$storeDatos = Store::latest()->first();
-		$webhook_address_orders_cancelled = env('WEBHOOK_ADDRESS_ORDERS_CANCELLED');
-#        $api = new ShopifyAPI($storeDatos->shop, $storeDatos->access_token);
+		#$webhook_address_orders_cancelled = env('WEBHOOK_ADDRESS_ORDERS_CANCELLED');
+        $configs = Config::all();
+        $webhook_address_orders_cancelled = $configs->webhook_address_orders_cancelled;
         $api = new ShopifyAPI($storeDatos->shop, $access_token);
 
 		// Datos iniciales en forma de arreglo asociativo
@@ -532,6 +472,80 @@ class ShopifyController extends Controller
 		]);
 		$webhook->save();
 	}
+
+
+
+
+
+
+
+
+
+
+    /*************************************************************************************************************
+     * CARRIER SHOW
+     *
+     * @return \Illuminate\Http\Response
+     *************************************************************************************************************/
+    public function carrierShow($carrierId)
+    {
+        $storeDatos = Store::latest()->first();
+        $api = new ShopifyAPI($storeDatos->shop, $storeDatos->access_token);
+
+        $response = $api->callAPI('GET', "carrier_services/{$carrierId}");
+        echo "<pre>";
+        print_r($response);
+        echo "</pre>";
+    }
+
+    /*************************************************************************************************************
+     * CARRIER LIST
+     *
+     * @return \Illuminate\Http\Response
+     *************************************************************************************************************/
+    public function carrierList()
+    {
+        $shopifyDatos = Store::latest()->first();
+
+        $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
+
+        $response = $api->callAPI('GET', "carrier_services");
+        echo "<pre>";
+        print_r($response);
+        echo "</pre>";
+    }
+
+    /*************************************************************************************************************
+     * CARRIER DELETE
+     *
+     * @return \Illuminate\Http\Response
+     * 
+     * 
+     *************************************************************************************************************/
+    public function carrierDelete($carrierId)
+    {
+        $shopifyDatos = DB::table('Shopify')
+        ->where('carrier->carrier_service->id', $carrierId)
+            ->get();
+        $shopifyDatos = Store::latest()->first();
+        $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
+        #$api = new ShopifyAPI("zeusintegra.mishopify.com", "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");
+
+        $response = $api->callAPI('DELETE', "carrier_services/{$carrierId}");
+        $shopifyDatos = DB::table('Shopify')
+        ->where('carrier->carrier_service->id', $carrierId)
+            ->delete();
+
+        $shopifyDatos = Store::latest()->first();
+        $api = new ShopifyAPI($shopifyDatos->shop, $shopifyDatos->access_token);
+
+        $response = $api->callAPI('DELETE', "carrier_services/{$carrierId}");
+        if (array_key_exists('error', $response)) {
+            echo "Error: " . $response['error'];
+        } else {
+            echo "Carrier $carrierId borrado con éxito";
+        }
+    }
 
      /*************************************************************************************************************
 	 * WEBHOOK SHOW
