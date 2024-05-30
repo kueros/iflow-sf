@@ -21,6 +21,16 @@ use Shopify\Clients\Rest;
 */
 Route::get('/', [ShopifyController::class, 'create'])->name('shopify.create');
 
+Route::get('/error', function () {
+    return view('error');
+});
+
+Route::get('/error_configs', function () {
+    return view('error_configs');
+});
+
+#Route::get('/error', [ShopifyController::class, 'create'])->name('shopify.create');
+
 Route::get('/shopify', [ShopifyController::class, 'index'])->name('shopify.index');
 Route::get('/install', [ShopifyController::class, 'install'])->name('shopify.install');
 Route::get('/segundowebhook', [ShopifyController::class, 'segundowebhook'])->name('shopify.segundowebhook');

@@ -72,6 +72,10 @@ class ShopifyController extends Controller
 		#Cargo las variables desde la tabla de configs
         $configs = Config::get()->first();
         #dd($configs);
+        if ( is_null($configs) ){
+            header('Location: error_configs');
+            exit;
+        }
 		$api_key = $configs->cli_id;//config('sfenv.api_key');
 		$redirect_url =  $configs->re_dir_url;
 		$scope =  $configs->scope;
@@ -179,6 +183,13 @@ class ShopifyController extends Controller
 			
 
 			$response = curl_exec($curl);
+
+            if (str_contains($response, 'errors')) {
+                #dd('asdfasdf');
+                header('Location: error');
+                exit;
+            }
+
 			
 			//var_dump($response);
 
@@ -220,10 +231,10 @@ class ShopifyController extends Controller
 			$responseArray = $response;
 
 			$responseArray = json_decode($response, true);
-			
-			
 
-			#dd($responseArray['webhook']['id']);
+            #dd($response);
+
+            #dd($responseArray['webhook']['id']);
 
 			$webhookId = $responseArray['webhook']['id'];
 			$webhook = Webhook::create([
