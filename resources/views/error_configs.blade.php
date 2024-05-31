@@ -24,6 +24,7 @@
                             <div class="card-body">
                                 <h1>¡¡¡ERROR!!!</h1>
                                 <p class="error-message">Falta cargar los datos en la tabla Configs.</p>
+                                <p class="error-message">Comuníquese con el administrador</p>
                                 <a href="/" class="btn btn-danger">Volver atrás</a>
                             </div>
                         </div>

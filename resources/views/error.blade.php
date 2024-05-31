@@ -24,6 +24,7 @@
                             <div class="card-body">
                                 <h1>¡¡¡ERROR!!!</h1>
                                 <p class="error-message">La tienda ya ha sido instalada.</p>
+                                <p class="error-message">Comuníquese con el Area Comercial.</p>
                                 <a href="/" class="btn btn-danger">Volver atrás</a>
                             </div>
                         </div>

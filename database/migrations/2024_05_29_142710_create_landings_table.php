@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('landings', function (Blueprint $table) {
             $table->id();
-            $table->string('url_dashboard');
+			$table->string('plataforma');
+			$table->string('url_dashboard');
             $table->string('url_instalador');
             $table->timestamps();
         });
