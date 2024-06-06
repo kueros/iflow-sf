@@ -16,6 +16,7 @@ return new class extends Migration
 			$table->string('plataforma');
 			$table->string('url_dashboard');
             $table->string('url_instalador');
+			$table->string('icono');
             $table->timestamps();
         });
     }
